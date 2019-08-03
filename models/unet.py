@@ -15,18 +15,18 @@ import torch
 from layers.conv import ConvLayer, DeconvLayer, TransConvLayer
 
 class UnetBulk(nn.Module):
-    '''
+    """
     Recursively build a U-NET
-    '''
+    """
     def __init__(self, ch_in: int=32, n_recursions: int=4, dropout: Optional[float]=None,
                  use_shuffle :bool=True, activ: nn.Module=nn.ELU):
         super().__init__()
-        '''
+        """
         :param ch_in: (int) number of input Channels
         :param n_recursions: (int) number of times to repeat
         :param use_shuffle: (bool) whether to use pixel shuffel or traditional deconvolution
         :param dropout: (float or none) whether or not to use dropout and how much
-        '''
+        """
         self.down = nn.Sequential(ConvLayer(ch_in, ch_in, stride=2, dropout=dropout, activ=activ),
                                   ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
                                   ConvLayer(ch_in, 2 * ch_in, dropout=dropout, activ=activ))
@@ -57,20 +57,20 @@ class UnetBulk(nn.Module):
         return torch.cat([self.up(down_path), x], dim=1)
 
 class UNET(nn.Module):
-    '''
+    """
     Wrapper for UNET_Bulk together with input and output layers
-    '''
+    """
     def __init__(self, ch_in: int=12, ch_out: int=2, bulk_ch: int=32, n_recursions: int=4,
                  use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU):
         super().__init__()
-        '''
+        """
         :param ch_in: (int) number of input Channels
         :param ch_out: (int) number of output Channels
         :param bulk_ch: (int) initial channels for bulk
         :param n_recursions: (int) number of times to repeat
         :param use_shuffle: (bool) whether to use pixel shuffel or traditional deconvolution
         :param dropout: (float or none) whether or not to use dropout and how much
-        '''
+        """
         self.in_layer = ConvLayer(ch_in, bulk_ch, ks=1, pad=0, dropout=dropout, activ=activ)
 
         self.bulk = UnetBulk(ch_in=bulk_ch, n_recursions=n_recursions,
