@@ -1,5 +1,5 @@
 [REPORTS]
-disable=missing-docstring,no-member,too-many-arguments,too-many-locals,too-many-branches,too-many-statements,consider-using-enumerate,redefined-outer-name, import-error, arguments-differ, invalid-name, no-name-in-module
+disable=missing-docstring,no-member,too-many-arguments,too-many-locals,too-many-branches,too-many-statements,consider-using-enumerate,redefined-outer-name, import-error, arguments-differ, invalid-name, no-name-in-module, fixme, dangerous-default-value
 
 [BASIC]
 variable-rgx=[a-zA-Z0-9_]{1,30}$ 
