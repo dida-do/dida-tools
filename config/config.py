@@ -3,16 +3,6 @@ Contains basic project settings such as input/output directories etc.
 """
 
 import os
-import json
-
-def read_json(path: str) -> dict:
-    """
-    Reads json from a given path and returns
-    corresponding dictionary
-    """
-    with open(path) as file_content:
-        config = json.load(file_content)
-    return config
 
 #project root
 ROOT_PATH = os.path.abspath(os.path.join(__file__, os.pardir, os.pardir))
@@ -24,8 +14,12 @@ LOG_DIR = os.path.join(ROOT_PATH, "logs")
 
 #data directories
 DATA_DIR = os.path.join(ROOT_PATH, "data")
+TRAIN_DIR = os.path.join(DATA_DIR, "train")
+TEST_DIR = os.path.join(DATA_DIR, "test")
+PREDICTED_DIR = os.path.join(DATA_DIR, "predicted")
 
-config = {
+# TODO automatically assemble dictionary
+global_config = {
     "ROOT_PATH": ROOT_PATH,
     "WEIGHT_DIR": WEIGHT_DIR,
     "CHECKPOINT_DIR": CHECKPOINT_DIR,

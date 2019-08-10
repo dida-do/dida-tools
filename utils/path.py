@@ -2,18 +2,27 @@
 Contains path, file and directory management helpers.
 """
 
+import json
 import os
-from os import path
 import shutil
 
 def create_dirs(directory: str):
-    if not path.exists(directory):
+    if not os.path.exists(directory):
         os.makedirs(directory)
 
 def remove_dirs(path: str):
-    if path.exists(path):
+    if os.path.exists(path):
         shutil.rmtree(path)
 
-def init_directories(config: dict):
-    for val in config.values():
-        create_dirs(val)
+def init_directories(paths: list):
+    for path in paths:
+        create_dirs(path)
+
+def read_json(path: str) -> dict:
+    """
+    Reads json from a given path and returns
+    corresponding dictionary
+    """
+    with open(path) as file_content:
+        config = json.load(file_content)
+    return config
