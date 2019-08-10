@@ -17,6 +17,7 @@ import smtplib
 import datetime
 import getpass
 
+#TODO add typing
 
 class SMTPNotifier():
     '''This is a class for sending mails from G Suite / Gmail (like @dida.do) over SMTP easily.
