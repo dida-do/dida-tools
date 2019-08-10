@@ -2,7 +2,27 @@
 This module contains generic pytorch losses for training.
 """
 
+import sys
 import torch
+
+def get_loss(name: str):
+    """
+    Load a loss by name from torch.nn.modules.loss
+    and revert to this module as fallback routine.
+    Note: importing the losses by name is case sensitive.
+    Torch losses are instantiated with default arguments
+    and then returned. Losses in this module
+    are directly returned as functions.
+    """
+    from torch.nn.modules import loss as torchloss
+    utilsloss = sys.modules[__name__]
+    try:
+        loss = getattr(torchloss, name)
+        loss = loss()
+    except AttributeError:
+        loss = getattr(utilsloss, name)
+    del torchloss, utilsloss
+    return loss
 
 def smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
                      smooth: float=1., eps: float=1e-6) -> torch.Tensor:
