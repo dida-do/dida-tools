@@ -2,8 +2,11 @@
 Contains wrapper for torch.utils.data.Dataset derived classes
 """
 
+import os
+
 import numpy as np
 import torch
+from typing import Optional
 
 class NpyDataset(torch.utils.data.Dataset):
     '''
