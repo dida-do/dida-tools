@@ -106,10 +106,12 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     
     learner.save(modelpath)
     val_loss = min(learner.recorder.val_losses)
+    val_metrics = learner.recorder.metrics
 
     #write csv log file
     log_content = train_config.copy()
     log_content["VAL_LOSS"] = val_loss
+    log_content["VAL_METRICS"] = val_metrics
     log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
     write_log(log_path, log_content)
 
