@@ -78,21 +78,18 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
     # model name & paths
     name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
-    checkpoint_path = os.path.join(global_config["CHECKPOINT_DIR"], name)
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
      
     if train_config["MIXED_PRECISION"]:
         learner.to_fp16()
 
-    #if os.path.exists(checkpoint_path):
-    #    os.remove(checkpoint_path)
     learner.save(modelpath)
 
     torch.backends.cudnn.benchmark = True
 
     cbs = [
         SaveModelCallback(learner),
-        LearnerTensorboardWriter(learner, Path(global_config["LOG_DIR"]), name),
+        LearnerTensorboardWriter(learner, Path(os.path.join(global_config["LOG_DIR"]), "tensorboardx") ,name),
         TerminateOnNaNCallback()
     ]
 
@@ -105,12 +102,6 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     # save model files
     except KeyboardInterrupt:
         learner.save(modelpath)
-        #write csv log file
-        val_loss = min(learner.recorder.val_losses)
-        log_content = train_config.copy()
-        log_content["VAL_LOSS"] = val_loss
-        log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
-        write_log(log_path, log_content)
         raise KeyboardInterrupt
     
     learner.save(modelpath)
