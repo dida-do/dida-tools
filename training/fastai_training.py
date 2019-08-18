@@ -4,6 +4,7 @@ including tensorboardX support, model checkpoints and csv logging
 """
 
 import os
+import sys
 from pathlib import Path
 from datetime import datetime
 
@@ -19,9 +20,11 @@ from config.config import global_config
 from models.unet import UNET
 from utils.logging.csv import write_log
 from utils.loss import smooth_dice_loss, precision, recall, f1
+from utils.path import create_dirs
 
 train_config = {
     "SESSION_NAME": "training-run",
+    "ROUTINE_NAME": sys.modules[__name__],
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "MODEL": UNET,
     "MODEL_CONFIG": {
@@ -58,6 +61,9 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     Returns the fitted fastai.train.Learner object which can be
     used to assess the resulting metrics and error curves etc.
     """
+    
+    for path in global_config.values():
+        create_dirs(path)
 
     # wrap datasets with Dataloader classes
     train_loader = torch.utils.data.DataLoader(train_dataset, **train_config["DATA_LOADER_CONFIG"])
@@ -67,19 +73,20 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     # instantiate model and learner
     model = training_config["MODEL"](**training_config["MODEL_CONFIG"])
     learner = Learner(databunch, model, metrics=train_config["METRICS"],
-                      path=global_config["ROOT_DIR"], model_dir=global_config["WEIGHT_DIR"],
+                      path=global_config["ROOT_PATH"], model_dir=global_config["WEIGHT_DIR"],
                       loss_func=train_config["LOSS"])
 
-    # model name
+    # model name & paths
     name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
-    checkpoint_path = os.join(global_config["CHECKPOINT_DIR"], name)
-
+    checkpoint_path = os.path.join(global_config["CHECKPOINT_DIR"], name)
+    modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
+     
     if train_config["MIXED_PRECISION"]:
         learner.to_fp16()
 
-    if os.path.exists(checkpoint_path):
-        os.remove(checkpoint_path)
-    learner.save(checkpoint_path)
+    #if os.path.exists(checkpoint_path):
+    #    os.remove(checkpoint_path)
+    learner.save(modelpath)
 
     torch.backends.cudnn.benchmark = True
 
@@ -90,7 +97,6 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     ]
 
     # perform training iteration
-    modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
     try:
         if train_config["ONE_CYCLE"]:
             learner.fit_one_cycle(train_config["EPOCHS"], max_lr=train_config["LR"], callbacks=cbs)
@@ -99,14 +105,22 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     # save model files
     except KeyboardInterrupt:
         learner.save(modelpath)
+        #write csv log file
+        val_loss = min(learner.recorder.val_losses)
+        log_content = train_config.copy()
+        log_content["VAL_LOSS"] = val_loss
+        log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
+        write_log(log_path, log_content)
         raise KeyboardInterrupt
+    
     learner.save(modelpath)
     val_loss = min(learner.recorder.val_losses)
 
     #write csv log file
     log_content = train_config.copy()
     log_content["VAL_LOSS"] = val_loss
-    log_path = os.join(global_config["LOG_DIR"], train_config["LOGFILE"])
+    log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
     write_log(log_path, log_content)
 
     return learner
+    
