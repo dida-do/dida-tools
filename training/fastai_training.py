@@ -23,9 +23,9 @@ from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
 
 train_config = {
+    "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "SESSION_NAME": "training-run",
     "ROUTINE_NAME": sys.modules[__name__],
-    "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "MODEL": UNET,
     "MODEL_CONFIG": {
         "ch_in": 12,
