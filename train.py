@@ -10,13 +10,14 @@ added easily in the corresponding class.
 
 We assume that the data is split into test and training examples
 in the paths
-<data_root>/train/x
-<data_root>/train/y
-<data_root>/test/x
-<data_root>/test/y
+<DATA_DIR>/train/x
+<DATA_DIR>/train/y
+<DATA_DIR>/test/x
+<DATA_DIR>/test/y
 where "x" corresponds to observation features and "y" corresponds to labels.
 We additionally assume that in "x" and "y", the correspondence
-is provided by files carrying the same file name.
+is provided by files carrying the same file name. 
+<DATA_DIR> is specified in config.config.global_config.
 
 We do NOT provide a full Argparse suite, since every training routine
 needs its own arguments provided by an external training config file/dictionary.
@@ -24,45 +25,35 @@ An example config is provided in training.fastai_training.
 """
 
 import argparse
+import sys
+import os
 
-from config.config import read_json, global_config
+from config.config import global_config
 from config.device import get_device
 
 from models.unet import UNET
-from training.pytorch import train
-from utils.path import init_directories
+from utils.data import datasets
+
+from training import fastai_training
 
 def cli(train_config):
+    #TODO
+    #parse generic config file names
     pass
 
 if __name__ == "__main__":
+        
+    #create datasets
+    train_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'train/x'),
+                                     os.path.join(global_config["DATA_DIR"], 'train/y'))
 
-    #parse command line args into configs
-    args = cli()
+    test_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'test/x'),
+                                    os.path.join(global_config["DATA_DIR"], 'test/y'))
 
-    #get configs
-    model_config = read_json(args.model_config)
-    train_config = read_json(args.train_config)
-    device = get_device()
-
-    #update config settings with cli arguments
-    #TODO
-
-    #initialize directories
-    init_directories(global_config.values())
-
-    #wrap dataset and provide iterable -> dataloader class
-    dataloader = Dataloader(dataset)
-
-    #instantiate model
-    model = UNET(**model_config)
-
-    # throw iterable and training config and global config
-    # into training routine
-    train(model, dataloader, train_config, global_config, device)
+    #pass configuration and datasets to training routine
+    learner = fastai_training.train(train_data, test_data,
+                                    fastai_training.train_config, global_config)
 
     #notification routine
-    if args.notify:
-        #TODO
-        pass
+    #TODO
     
