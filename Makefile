@@ -1,0 +1,47 @@
+SHELL:=/bin/bash
+TEST=pytest
+LINT=pylint
+TESTFLAGS= -v
+
+.PHONY: help env env-dev env-remove doc clean-doc clean test lint
+
+help:
+	@echo "env 		- create the conda environment 'pycloud-env' based on environment.yml"
+	@echo "env-dev		- runs 'make env' and installs additional development dependencies"
+	@echo "env-remove 	- remove 'pycloud-env'"
+	@echo "doc 		- build sphinx docs, requires pycloud-env"
+	@echo "clean-doc 	- remove binaries created by sphinx"
+	@echo "clean	- remove all compiled bytecode and doc binaries"
+	@echo "test		- run unit tests"
+	@echo "lint		- run linter for all modules"
+
+setup:
+	$(SHELL) setup.sh
+
+env:
+	conda env create -f environment.yml
+
+env-dev:
+	conda env create -f environment.yml || true
+	conda env update -f dev.yml 
+
+env-remove:
+	conda remove --name pycloud-env --all
+
+doc:
+	mkdir -p docs/source/_static || true
+	$(MAKE) -C docs/ html
+
+clean-doc:
+	$(MAKE) -C docs/ clean || true
+
+clean:
+	$(MAKE) clean-doc
+	py3clean . && rm -rf .pytest_cache
+
+test:
+	$(TEST) $(TESTFLAGS)
+
+lint:
+	find . -iname "*.py" | xargs $(LINT)
+
