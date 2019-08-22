@@ -13,8 +13,18 @@ class NpyDataset(torch.utils.data.Dataset):
     A dataset class to handle serialised numpy data, for example images.
 
     Data consists of float `.npy` files of fixed shape.
+    Observations and labels are given by different folders
+    containing files with same names.
     '''
     def __init__(self, x_dir, y_dir, tfms: Optional[callable]=None):
+        """
+        Instantiate .npy file dataset.
+        
+        :param x_dir: (str) observation directory
+        :param y_dir: (str) label directory
+        :param tfms : (callable) transformation pipeline
+        """
+        
         self.x_dir = x_dir
         self.y_dir = y_dir
 
