@@ -5,7 +5,7 @@ Contains wrapper for torch.utils.data.Dataset derived classes
 import os
 
 import numpy as np
-import torch
+import torch.utils.data
 from typing import Optional
 
 class NpyDataset(torch.utils.data.Dataset):
