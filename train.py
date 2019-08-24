@@ -46,10 +46,10 @@ def cli():
     """
 
     parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument("-w", "--warnings", action="store_true", 
-                        help="Suppress all warnings")
     parser.add_argument("-s", "--smtp", help="Send SMTP mail notification", 
                         type=str)
+    parser.add_argument("-w", "--warnings", action="store_true", 
+                        help="Suppress all warnings")
 
     return parser.parse_args()
 
