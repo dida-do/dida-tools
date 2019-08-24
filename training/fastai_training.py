@@ -5,8 +5,8 @@ including tensorboardX support, model checkpoints and csv logging
 
 import os
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 from fastai.callbacks.tracker import TerminateOnNaNCallback, SaveModelCallback
 from fastai.callbacks.tensorboard import LearnerTensorboardWriter
@@ -115,5 +115,5 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
     write_log(log_path, log_content)
 
-    return learner
+    return learner, log_content, name
     
