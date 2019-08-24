@@ -57,6 +57,9 @@ training_config = {
     "__COMMENT": None
 }
 
+# TODO add summary writer
+# TODO add csv logging routine
+
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
           training_config: dict=train_config, global_config: dict=global_config):
     """
@@ -73,7 +76,6 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     # wrap datasets with Dataloader classes
     train_loader = torch.utils.data.DataLoader(train_dataset, **train_config["DATA_LOADER_CONFIG"])
     test_loader = torch.utils.data.DataLoader(test_dataset, **train_config["DATA_LOADER_CONFIG"])
-    databunch = DataBunch(train_loader, test_loader)
     
     # instantiate model
     model = training_config["MODEL"](**training_config["MODEL_CONFIG"])
@@ -85,6 +87,8 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     evaluator = create_supervised_evaluator(model, metrics=train_config["METRICS"], 
                                             device=train_config["DEVICE"])
       
+        
+    #TODO update variable names to training config key/value combinations
     @trainer.on(Events.ITERATION_COMPLETED)
     def log_training_loss(engine):
         iter = (engine.state.iteration - 1) % len(train_loader) + 1
@@ -103,13 +107,12 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_validation_results(engine):
-        evaluator.run(val_loader)
+        evaluator.run(test_loader)
         metrics = evaluator.state.metrics
         avg_accuracy = metrics['accuracy']
         avg_nll = metrics['nll']
         print("Validation Results - Epoch: {}  Avg accuracy: {:.2f} Avg loss: {:.2f}"
               .format(engine.state.epoch, avg_accuracy, avg_nll))
 
-    # kick everything off
     trainer.run(train_loader, max_epochs=train_config["EPOCHS"])
 
