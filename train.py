@@ -25,24 +25,43 @@ An example config is provided in training.fastai_training.
 """
 
 import argparse
+import pprint
 import sys
 import os
+import warnings
 
 from config.config import global_config
 from config.device import get_device
 
 from models.unet import UNET
 from utils.data import datasets
+from utils.notify import smtp
 
 from training import fastai_training
 
-def cli(train_config):
-    #TODO
-    #parse generic config file names
-    pass
+
+def cli():
+
+    DESCRIPTION = """
+    """
+
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument("-w", "--warnings", action="store_true", 
+                        help="Suppress all warnings")
+    parser.add_argument("-s", "--smtp", help="Send SMTP mail notification", 
+                        type=str)
+
+    return parser.parse_args()
 
 if __name__ == "__main__":
+    
+    args = cli()
+    if args.smtp:
+        notifier= smtp.SMTPNotifier(args.smtp, args.smtp)
         
+    if args.warnings:
+        warnings.filterwarnings("ignore")
+    
     #create datasets
     train_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'train/x'),
                                      os.path.join(global_config["DATA_DIR"], 'train/y'))
@@ -51,9 +70,12 @@ if __name__ == "__main__":
                                     os.path.join(global_config["DATA_DIR"], 'test/y'))
 
     #pass configuration and datasets to training routine
-    learner = fastai_training.train(train_data, test_data,
-                                    fastai_training.train_config, global_config)
-
-    #notification routine
-    #TODO
+    learner, log_content, name = fastai_training.train(train_data, test_data,
+                                                       fastai_training.train_config,
+                                                       global_config)
     
+    if args.notify:
+        pp = pprint.PrettyPrinter(indent=4)
+        content = pp.pformat(log_content)
+        notifier.notify(content, subject=name)
+        
