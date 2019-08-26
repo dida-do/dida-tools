@@ -11,6 +11,7 @@ from pathlib import Path
 from tensorboardX import SummaryWriter
 
 import torch
+import torch.utils.data
 from torch.nn import ELU
 
 from config.config import global_config
@@ -22,7 +23,7 @@ from utils.path import create_dirs
 from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator
 from ignite.metrics import Accuracy, Loss
 
-training_config = {
+train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "SESSION_NAME": "training-run",
     "ROUTINE_NAME": sys.modules[__name__],
@@ -74,25 +75,25 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         create_dirs(path)
 
     # wrap datasets with Dataloader classes
-    train_loader = torch.utils.data.DataLoader(train_dataset, **train_config["DATA_LOADER_CONFIG"])
-    test_loader = torch.utils.data.DataLoader(test_dataset, **train_config["DATA_LOADER_CONFIG"])
+    train_loader = torch.utils.data.DataLoader(train_dataset, **training_config["DATA_LOADER_CONFIG"])
+    test_loader = torch.utils.data.DataLoader(test_dataset, **training_config["DATA_LOADER_CONFIG"])
     
     # instantiate model
     model = training_config["MODEL"](**training_config["MODEL_CONFIG"])
     
-    optimizer = SGD(model.parameters(), **training_config["OPTIMIZER_CONFIG"])
+    optimizer = training_config["OPTIMIZER"](model.parameters(), **training_config["OPTIMIZER_CONFIG"])
     
     trainer = create_supervised_trainer(model=model, optimizer=optimizer, 
-                                        loss=training_config["LOSS"], device=training_config["DEVICE"])
-    evaluator = create_supervised_evaluator(model, metrics=train_config["METRICS"], 
-                                            device=train_config["DEVICE"])
+                                        loss_fn=training_config["LOSS"], device=training_config["DEVICE"])
+    evaluator = create_supervised_evaluator(model, metrics=training_config["METRICS"], 
+                                            device=training_config["DEVICE"])
       
         
     #TODO update variable names to training config key/value combinations
     @trainer.on(Events.ITERATION_COMPLETED)
     def log_training_loss(engine):
         iter = (engine.state.iteration - 1) % len(train_loader) + 1
-        if iter % log_interval == 0:
+        if iter % 2 == 0:
             print("Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
                   "".format(engine.state.epoch, iter, len(train_loader), engine.state.output))
 
@@ -114,5 +115,5 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         print("Validation Results - Epoch: {}  Avg accuracy: {:.2f} Avg loss: {:.2f}"
               .format(engine.state.epoch, avg_accuracy, avg_nll))
 
-    trainer.run(train_loader, max_epochs=train_config["EPOCHS"])
+    trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
 
