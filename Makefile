@@ -3,7 +3,7 @@ TEST=pytest
 LINT=pylint
 TESTFLAGS= -v
 
-.PHONY: help env env-dev env-remove doc clean-doc clean test lint
+.PHONY: help env env-dev env-remove doc clean-doc clean test lint docker-build docker-run
 
 help:
 	@echo "env 		- create the conda environment 'pycloud-env' based on environment.yml"
@@ -14,6 +14,8 @@ help:
 	@echo "clean	- remove all compiled bytecode and doc binaries"
 	@echo "test		- run unit tests"
 	@echo "lint		- run linter for all modules"
+	@echo "docker-build	- build docker image"
+	@echo "docker-run	- run docker container"
 
 setup:
 	$(SHELL) setup.sh
@@ -44,4 +46,9 @@ test:
 
 lint:
 	find . -iname "*.py" | xargs $(LINT)
-
+    
+docker-build:
+	docker build . -t dl-repo
+    
+docker-run:
+	docker run -it dl-repo
