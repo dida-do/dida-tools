@@ -1,15 +1,16 @@
 """
 An ignite-based template training routine.
 Contains automated checkpointing, csv routine history logging and
-tensorboardX logging.
-
-https://github.com/pytorch/ignite/blob/master/examples/mnist/mnist_with_tensorboardx.py
+general tracking of metrics/tensorboard support via tensorboardX.
 """
 
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
+
+from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator
+from ignite.metrics import Accuracy, Loss
 
 from tensorboardX import SummaryWriter
 
@@ -22,9 +23,6 @@ from models.unet import UNET
 from utils.logging.csv import write_log
 from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
-
-from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator
-from ignite.metrics import Accuracy, Loss
 
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -61,9 +59,6 @@ train_config = {
     "__COMMENT": None
 }
 
-# TODO add summary writer
-# TODO tensorboardx?
-
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
           training_config: dict=train_config, global_config: dict=global_config):
     """
@@ -97,44 +92,56 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     evaluator = create_supervised_evaluator(model, metrics=training_config["METRICS"], 
                                             device=training_config["DEVICE"])
       
+          
+    # tensorboardX setup
+    log_dir = os.path.join(global_config["LOG_DIR"], "tensorboardx", name)
+    create_dirs(log_dir)
+    writer = SummaryWriter(logdir=log_dir)
 
     @trainer.on(Events.ITERATION_COMPLETED)
     def log_training(engine):
         iteration = (engine.state.iteration - 1) % len(train_loader) + 1
+        writer.add_scalar("training/loss", engine.state.output, engine.state.iteration)
         if iteration % 4 == 0:
-            print("\repoch[{}] iteration[{}/{}] loss: {:.2f}"
+            print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
                   "".format(engine.state.epoch, iteration, len(train_loader), engine.state.output), end="")
             
     # generic evaluation function
     def evaluate(engine, loader):
         evaluator.run(loader)
         metrics = evaluator.state.metrics
-        print(metrics)
+        return metrics
     
     # training data metrics
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_training_results(engine):
-        print("training results - epoch {}".format(engine.state.epoch))
-        evaluate(engine, train_loader)
-    
+        print("\ntraining results - epoch {}".format(engine.state.epoch))
+        metrics = evaluate(engine, train_loader)
+        print(metrics)
+        for key, value in metrics.items():
+            writer.add_scalar("training/avg_{}".format(key), value, engine.state.epoch)
+             
     # test data metrics
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_validation_results(engine):
         print("test results - epoch {}".format(engine.state.epoch))
-        evaluate(engine, test_loader)
+        metrics = evaluate(engine, test_loader)
+        print(metrics)
+        for key, value in metrics.items():
+            writer.add_scalar("validation/avg_{}".format(key), value, engine.state.epoch)
     
     # model checkpointing
     @trainer.on(Events.EPOCH_COMPLETED)
     def model_checkpoint(engine):
         torch.save(model.state_dict(), modelpath + ".pth")
-        print("Checkpoint saved to {}.".format(modelpath + ".pth"))
+        print("Checkpoint saved to {}".format(modelpath + ".pth"))
     
     # training iteration
     try:
         trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
     except KeyboardInterrupt:
         torch.save(model.state_dict(), modelpath +  ".pth")
-        print("Model saved to {}.".format(modelpath + "pth"))
+        print("Model saved to {}".format(modelpath + "pth"))
         raise KeyboardInterrupt
     
     # write weights
@@ -146,4 +153,3 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     log_content["VAL_METRICS"] = evaluator.state.metrics
     log_path = os.path.join(global_config["LOG_DIR"], training_config["LOGFILE"])
     write_log(log_path, log_content)
-
