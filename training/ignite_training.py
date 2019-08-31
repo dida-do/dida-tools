@@ -118,6 +118,13 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     
     trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
     
+    # model name & paths
+    name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
+    modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
+    
+    #write weights
+    torch.save(model.state_dict(), modelpath +  ".pth")
+    
     #write csv log file
     log_content = training_config.copy()
     evaluator.run(test_loader)
