@@ -20,7 +20,7 @@ See below for an
 overview of the package contents:
 
 
-```C++
+```C
 .
 ├── config // generic project settings
 │   ├── __init__.py
