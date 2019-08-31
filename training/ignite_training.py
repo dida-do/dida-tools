@@ -37,7 +37,7 @@ train_config = {
         "activ": ELU
     },
     "DATA_LOADER_CONFIG": {
-        "batch_size": 64,
+        "batch_size": 1,
         "shuffle": True,
         "pin_memory": True,
         "num_workers": 8
@@ -60,6 +60,8 @@ train_config = {
 
 # TODO add summary writer
 # TODO add csv logging routine
+# TODO update epoch events with generic metrics
+# TODO tensorboardx?
 
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
           training_config: dict=train_config, global_config: dict=global_config):
@@ -91,29 +93,26 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         
     #TODO update variable names to training config key/value combinations
     @trainer.on(Events.ITERATION_COMPLETED)
-    def log_training_loss(engine):
-        iter = (engine.state.iteration - 1) % len(train_loader) + 1
-        if iter % 2 == 0:
-            print("Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
-                  "".format(engine.state.epoch, iter, len(train_loader), engine.state.output))
-
+    def log_training(engine):
+        iteration = (engine.state.iteration - 1) % len(train_loader) + 1
+        if iteration % 2 == 0:
+            print("epoch[{}] iteration[{}/{}] loss: {:.2f}"
+                  "".format(engine.state.epoch, iteration, len(train_loader), engine.state.output))
+    
+    def evaluate(engine, loader):
+        evaluator.run(loader)
+        metrics = evaluator.state.metrics
+        print(metrics)
+           
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_training_results(engine):
-        evaluator.run(train_loader)
-        metrics = evaluator.state.metrics
-        avg_accuracy = metrics['accuracy']
-        avg_nll = metrics['nll']
-        print("Training Results - Epoch: {}  Avg accuracy: {:.2f} Avg loss: {:.2f}"
-              .format(engine.state.epoch, avg_accuracy, avg_nll))
+        print("training results - epoch {}".format(engine.state.epoch))
+        evaluate(engine, train_loader)
 
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_validation_results(engine):
-        evaluator.run(test_loader)
-        metrics = evaluator.state.metrics
-        avg_accuracy = metrics['accuracy']
-        avg_nll = metrics['nll']
-        print("Validation Results - Epoch: {}  Avg accuracy: {:.2f} Avg loss: {:.2f}"
-              .format(engine.state.epoch, avg_accuracy, avg_nll))
-
+        print("test results - epoch {}".format(engine.state.epoch))
+        evaluate(engine, test_loader)
+    
     trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
 
