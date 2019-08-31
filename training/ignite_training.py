@@ -117,4 +117,11 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         evaluate(engine, test_loader)
     
     trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
+    
+    #write csv log file
+    log_content = training_config.copy()
+    evaluator.run(test_loader)
+    log_content["VAL_METRICS"] = evaluator.state.metrics
+    log_path = os.path.join(global_config["LOG_DIR"], training_config["LOGFILE"])
+    write_log(log_path, log_content)
 
