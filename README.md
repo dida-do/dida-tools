@@ -20,54 +20,53 @@ See below for an
 overview of the package contents:
 
 
-```
+```C++
 .
-├── config
+├── config // generic project settings
 │   ├── __init__.py
-│   ├── config.py
-│   ├── device.py
-│   ├── hyperparameter.json
-│   ├── predict.json
-│   └── train.json
-├── docs
-├── layers
-│   └── conv.py
-├── models
+│   ├── config.py // gobal project config file
+│   ├── device.py // device settings: cpu/cuda
+├── docs // documentation files
+├── layers // layer implementations
 │   ├── __init__.py
-│   └── unet.py
-├── tests
-│   ├── test_models
+│   └── conv.py // convolutional layers
+├── models // model implementations
+│   ├── __init__.py
+│   └── unet.py // UNET
+├── tests // unit tests
+│   ├── test_models // testing of trained models
 │   │   ├── __init__.py
-│   │   └── test_unet.py
+│   │   └── test_unet.py // example test suite for UNET
 │   └── __init__.py
-├── training
-│   ├── fastai_training.py
-│   ├── ignite_training.py
-│   └── pytorch_training.py
-├── utils
-│   ├── data
-│   │   ├── __init__.py
-│   │   └── datasets.py
-│   ├── logging
-│   │   ├── __init__.py
-│   │   └── csv.py
-│   ├── notify
-│   │   ├── __init__.py
-│   │   └── smtp.py
+├── training // implementation of generic training routines
 │   ├── __init__.py
-│   ├── loss.py
-│   ├── name.py
-│   ├── path.py
-│   └── torchutils.py
+│   ├── fastai_training.py // fastai based template
+│   ├── ignite_training.py // ignite based template
+│   └── pytorch_training.py // raw pytorch based template
+├── utils // utilities
+│   ├── data // operations with data: custom loaders, wrappers, transformations
+│   │   ├── __init__.py
+│   │   └── datasets.py // pytorch dataset wrappers
+│   ├── logging // custom logging routines
+│   │   ├── __init__.py
+│   │   └── csv.py // csv experiment tracker
+│   ├── notify // training notification pipelines
+│   │   ├── __init__.py
+│   │   └── smtp.py // automated gmail notification via SMTP
+│   ├── __init__.py
+│   ├── loss.py // loss implementations
+│   ├── name.py // file naming utilities
+│   ├── path.py // path manipulation utilities
+│   └── torchutils.py // generic pytorch tasks: forward passes, backward passes etc.
 ├── .gitignore
-├── .pylintrc
-├── dev.yml
-├── Dockerfile
-├── environment.yml
-├── hyperparameter.py
-├── Makefile
+├── .pylintrc // linter settings
+├── dev.yml // development and training requirements
+├── Dockerfile // Docker image specs
+├── environment.yml // inference and test time dependencies
+├── hyperparameter.py // WIP 
+├── Makefile // generic project tasks: cleaning, docs, building dependencies etc.
 ├── predict.py
-├── README.md
+├── README.md // this file
 ├── run_prediction.py
 └── train.py
 ```
@@ -167,14 +166,16 @@ train_config = {
 ```
 
 Note that the config contains objects such as functions and classes which corresponding keyword arguments 
-(for example `OPTIMZER` and the corresponding `OPTIMZER_CONFIG` containing for example the learning rate).
+(for example `OPTIMIZER` and the corresponding `OPTIMIZER_CONFIG` with for example the learning rate).
 The reason for this seemingly verbose architecture is that training routines can be fully captured and shared.
-Additionally, they can easily be logged and code refactoring is required to exchange hyperparameters.
+Additionally, they can easily be logged and no code refactoring is required to exchange hyperparameters.
 Everything can happen in the config, once the training routine is set up as desired.
+
+## Training
+
 
 ## Models
 
-## Training
 
 ## Datasets
 
