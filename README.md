@@ -10,11 +10,11 @@ for every possible task
 for my Wasserstein DCGAN"), we rather aim to provide templates and best practices for
 intuitive architectures.
 
-Additionally, typical requirements such as tensorboard logging, simple and extensible
+Additionally, typical requirements such as Tensorboard logging, simple and extensible
 training schemes, experiment tracking and model testing are covered. 
 
 **All components of the package are to be understood as a template which is designed to be
-easily modified -- not a hard implementation of some specific model/layer/training**
+easily modified - not a hard implementation of some specific model/layer/training**
 
 See below for an
 overview of the package contents:
@@ -74,6 +74,19 @@ overview of the package contents:
 
 ## Dependencies and environments
 
+Dependencies are aggregated via `environment.yml` and `dev.yml` which specify a list of
+`conda`-based project requirements. Run
+```
+make env
+```
+to only install dependencies needed for model testing and inference and run
+```
+make env-dev
+```
+to install all tool needed for training and corresponding development.
+Note: `make env-dev` automatically runs `make env` as part of the recipe.
+
+
 ## Docker
 
 A Docker image is provided by `Dockerfile`.
@@ -92,9 +105,72 @@ you can also directly use the make recipes `make docker-build` and `make docker-
 Pytorch itself is currently only providing a [deprecated GPU-compatible Docker image](https://github.com/pytorch/pytorch#docker-image)
 via [nvidia-docker](https://github.com/NVIDIA/nvidia-docker).
 
+Until GPU compatibility is fully available for the Docker container, it is probably more interesting in the context of deploying and testing trained models
+rather than training.
 
 ## Config files and project setup
 
+The project uses a **global config file** which is found under `config.config.global_config`.
+It specifies the project root as well as output destinations for weights, logs and experiment tracker files.
+Whenever these parameters are changed, the training routines will automatically dump their
+output to the corresponding directories.
+When these directories do not exist, they are automatically created.
+
+```python
+global_config = {
+    "ROOT_PATH": ROOT_PATH,
+    "WEIGHT_DIR": WEIGHT_DIR,
+    "LOG_DIR": LOG_DIR,
+    "DATA_DIR": DATA_DIR
+    }
+```
+Additionally, subcomponents such as training routines and model testing suites have their
+own config files. These files specify a full set of parameters needed for the particular task.
+As an example, as training run of the [ignite](https://pytorch.org/ignite/index.html)-based
+training scheme in `training.ignite_training` contains a following **training config**:
+
+```python
+train_config = {
+    "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
+    "SESSION_NAME": "training-run",
+    "ROUTINE_NAME": sys.modules[__name__],
+    "MODEL": UNET,
+    "MODEL_CONFIG": {
+        "ch_in": 12,
+        "ch_out": 2,
+        "n_recursions": 5,
+        "dropout": .2,
+        "use_shuffle": True,
+        "activ": ELU
+    },
+    "DATA_LOADER_CONFIG": {
+        "batch_size": 1,
+        "shuffle": True,
+        "pin_memory": True,
+        "num_workers": 8
+    },
+    "OPTIMIZER": torch.optim.SGD,
+    "OPTIMIZER_CONFIG": {
+        "lr": 1e-3
+    },
+    "EPOCHS":  100,
+    "LOSS": smooth_dice_loss,
+    "METRICS": {
+        "f1": Loss(f1),
+        "precision": Loss(precision),
+        "recall": Loss(recall)
+    },
+    "DEVICE": torch.device("cuda"),
+        "LOGFILE": "experiments.csv",
+    "__COMMENT": None
+}
+```
+
+Note that the config contains objects such as functions and classes which corresponding keyword arguments 
+(for example `OPTIMZER` and the corresponding `OPTIMZER_CONFIG` containing for example the learning rate).
+The reason for this seemingly verbose architecture is that training routines can be fully captured and shared.
+Additionally, they can easily be logged and code refactoring is required to exchange hyperparameters.
+Everything can happen in the config, once the training routine is set up as desired.
 
 ## Models
 
