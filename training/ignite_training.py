@@ -1,5 +1,6 @@
 """
-WIP - see
+An ignite-based template training routine.
+
 https://github.com/pytorch/ignite/blob/master/examples/mnist/mnist_with_tensorboardx.py
 """
 
@@ -85,19 +86,20 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     
     optimizer = training_config["OPTIMIZER"](model.parameters(), **training_config["OPTIMIZER_CONFIG"])
     
+    # set up ignite engine
+    training_config["METRICS"].update({"loss" : Loss(training_config["LOSS"])})
     trainer = create_supervised_trainer(model=model, optimizer=optimizer, 
                                         loss_fn=training_config["LOSS"], device=training_config["DEVICE"])
     evaluator = create_supervised_evaluator(model, metrics=training_config["METRICS"], 
                                             device=training_config["DEVICE"])
       
-        
-    #TODO update variable names to training config key/value combinations
+
     @trainer.on(Events.ITERATION_COMPLETED)
     def log_training(engine):
         iteration = (engine.state.iteration - 1) % len(train_loader) + 1
-        if iteration % 2 == 0:
-            print("epoch[{}] iteration[{}/{}] loss: {:.2f}"
-                  "".format(engine.state.epoch, iteration, len(train_loader), engine.state.output))
+        if iteration % 4 == 0:
+            print("\repoch[{}] iteration[{}/{}] loss: {:.2f}"
+                  "".format(engine.state.epoch, iteration, len(train_loader), engine.state.output), end="")
     
     def evaluate(engine, loader):
         evaluator.run(loader)
