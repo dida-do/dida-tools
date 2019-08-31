@@ -3,6 +3,77 @@
 
 ## Package contents
 
+This package is designed as a collection of fully compatible and flexible
+patterns for deep learning projects. Rather than giving a detailed implementation
+for every possible task 
+("Why don't you have a *channel shuffle group transpose convolution layer*
+for my Wasserstein DCGAN"), we rather aim to provide templates and best practices for
+intuitive architectures.
+
+Additionally, typical requirements such as tensorboard logging, simple and extensible
+training schemes, experiment tracking and model testing are covered. 
+
+**All components of the package are to be understood as a template which is designed to be
+easily modified -- not a hard implementation of some specific model/layer/training**
+
+See below for an
+overview of the package contents:
+
+
+```
+.
+├── config
+│   ├── __init__.py
+│   ├── config.py
+│   ├── device.py
+│   ├── hyperparameter.json
+│   ├── predict.json
+│   └── train.json
+├── docs
+├── layers
+│   └── conv.py
+├── models
+│   ├── __init__.py
+│   └── unet.py
+├── tests
+│   ├── test_models
+│   │   ├── __init__.py
+│   │   └── test_unet.py
+│   └── __init__.py
+├── training
+│   ├── fastai_training.py
+│   ├── ignite_training.py
+│   └── pytorch_training.py
+├── utils
+│   ├── data
+│   │   ├── __init__.py
+│   │   └── datasets.py
+│   ├── logging
+│   │   ├── __init__.py
+│   │   └── csv.py
+│   ├── notify
+│   │   ├── __init__.py
+│   │   └── smtp.py
+│   ├── __init__.py
+│   ├── loss.py
+│   ├── name.py
+│   ├── path.py
+│   └── torchutils.py
+├── .gitignore
+├── .pylintrc
+├── dev.yml
+├── Dockerfile
+├── environment.yml
+├── hyperparameter.py
+├── Makefile
+├── predict.py
+├── README.md
+├── run_prediction.py
+└── train.py
+```
+
+## Dependencies and environments
+
 ## Docker
 
 A Docker image is provided by `Dockerfile`.
@@ -22,65 +93,15 @@ Pytorch itself is currently only providing a [deprecated GPU-compatible Docker i
 via [nvidia-docker](https://github.com/NVIDIA/nvidia-docker).
 
 
+## Config files and project setup
+
+
+## Models
+
+## Training
+
+## Datasets
+
+
 ## Build documentation
 
-
-
-```
-├──  .dvc                 - clean DVC config
-├──  .gitlab-ci.yml       - Gitlab CI template file
-├──  .pylintrc            - contains linter settings
-├──  Dockerfile           - project template image for Docker
-├──  environment.yml      - full requirement specs for all contents
-├──  Makefile             - contains generic project tasks (tests, docs, cleaning...)
-├──  README.md            - this file
-│ 
-├──  train.py             - command line interface for generic training routines 
-├──  predict.py           - command line interface for generic inference routines
-├──  hyperparameter.py    - command line interface for generic hyperparameter search
-│ 
-├──  config
-│    ├── config.py        - default config file.
-│    └── device.py        - CPU/GPU settings.
-│
-├──  data                 - contains datasets, loaders and preprocessing tools  
-│    ├── datasets         - contains the actual train/test data
-│    ├── dataloader       - contains data wrapper classes and loading routines
-│    └── transforms       - routines and tools for data preprocessing and augmentation
-│
-├──  logging              - contains training routines
-│    ├── logger.py        - logging template
-│    └── tboardx.py       - wrappers for tensorboardx
-|
-├──  hyperparameter       - contains hyperparameter search routines
-│    └── nevergrad.py     - contains a nevergrad-based template optimization procedure
-|
-├──  training             - contains training routines
-│    └── fastai.py        - contains a fastai-based template training procedure
-│
-├── layers                - custom layer architectures
-│    └── conv_layer.py
-│
-├── models                - contains model class implementations
-│    └── unet.py
-|
-├── notification          - contains notification and scheduling routines
-│    └── smtp.py          - SMTP mail notifier
-│
-├── solver                - this folder contains optimizer of your project.
-│    └── lr_scheduler.py 
-│ 
-├── utils
-|    ├── name.py          - string manipulation and model name generation routines
-|    ├── path.py          - path manipulation helpers
-|    ├── checkpoint.py    - model saving routines
-│    └── build.py         - model compiling and JIT helpers
-│ 
-├──test                   - contains unit tests
-|    ├── utils.py         - unit test related utilities
-|    └── tests            - unit test cases 
-|         └── [...]
-|
-├──  weights              - default output directory
-|    └── tests            - default checkpoint output directory
-```
