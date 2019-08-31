@@ -1,5 +1,7 @@
 """
 An ignite-based template training routine.
+Contains automated checkpointing, csv routine history logging and
+tensorboardX logging.
 
 https://github.com/pytorch/ignite/blob/master/examples/mnist/mnist_with_tensorboardx.py
 """
@@ -60,8 +62,6 @@ train_config = {
 }
 
 # TODO add summary writer
-# TODO add csv logging routine
-# TODO update epoch events with generic metrics
 # TODO tensorboardx?
 
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
@@ -80,6 +80,10 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     # wrap datasets with Dataloader classes
     train_loader = torch.utils.data.DataLoader(train_dataset, **training_config["DATA_LOADER_CONFIG"])
     test_loader = torch.utils.data.DataLoader(test_dataset, **training_config["DATA_LOADER_CONFIG"])
+           
+    # model name & paths
+    name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
+    modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
     
     # instantiate model
     model = training_config["MODEL"](**training_config["MODEL_CONFIG"])
@@ -100,32 +104,43 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         if iteration % 4 == 0:
             print("\repoch[{}] iteration[{}/{}] loss: {:.2f}"
                   "".format(engine.state.epoch, iteration, len(train_loader), engine.state.output), end="")
-    
+            
+    # generic evaluation function
     def evaluate(engine, loader):
         evaluator.run(loader)
         metrics = evaluator.state.metrics
         print(metrics)
-           
+    
+    # training data metrics
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_training_results(engine):
         print("training results - epoch {}".format(engine.state.epoch))
         evaluate(engine, train_loader)
-
+    
+    # test data metrics
     @trainer.on(Events.EPOCH_COMPLETED)
     def log_validation_results(engine):
         print("test results - epoch {}".format(engine.state.epoch))
         evaluate(engine, test_loader)
     
-    trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
+    # model checkpointing
+    @trainer.on(Events.EPOCH_COMPLETED)
+    def model_checkpoint(engine):
+        torch.save(model.state_dict(), modelpath + ".pth")
+        print("Checkpoint saved to {}.".format(modelpath + ".pth"))
     
-    # model name & paths
-    name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
-    modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
+    # training iteration
+    try:
+        trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
+    except KeyboardInterrupt:
+        torch.save(model.state_dict(), modelpath +  ".pth")
+        print("Model saved to {}.".format(modelpath + "pth"))
+        raise KeyboardInterrupt
     
-    #write weights
+    # write weights
     torch.save(model.state_dict(), modelpath +  ".pth")
     
-    #write csv log file
+    # write csv log file
     log_content = training_config.copy()
     evaluator.run(test_loader)
     log_content["VAL_METRICS"] = evaluator.state.metrics
