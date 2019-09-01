@@ -23,7 +23,7 @@ predict_config = {
         "n_recursions": 5,
         "use_shuffle": True,
         "activ": torch.nn.ELU },
-    "WEIGHTS": "weights/20190901-084624_training-run.pth",
+    "WEIGHTS": "/path/to/model/weights.pth",
     "DEVICE": torch.device("cuda"),
     }
 
@@ -31,10 +31,13 @@ predict_config = {
 def cli():
 
     DESCRIPTION = """
-    Command line interface for generic model prediction.
+    Command line interface for batch compatible generic model prediction.
 
     Usage:
         $ python predict.py -i path/to/my/files/*.npy -o my/output/path
+        
+    Performs predictions for all .npy files obtained through shell globbing
+    and serialises the outputs as specified in the main routine below.
     """
 
     parser = argparse.ArgumentParser(description=DESCRIPTION)
