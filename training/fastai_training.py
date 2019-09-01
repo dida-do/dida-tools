@@ -53,7 +53,7 @@ train_config = {
 }
 
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
-          training_config: dict=train_config, global_config: dict=global_config) -> Learner:
+          training_config: dict=train_config, global_config: dict=global_config):
     """
     Template training routine. Takes a training and a test dataset wrapped
     as torch.utils.data.Dataset type and two corresponding generic
