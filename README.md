@@ -178,6 +178,8 @@ Everything can happen in the config, once the training routine is set up as desi
 
 ## Models
 
+Model implementation can be found in the `models` submodule. For now,
+only an exemplary recursive U-Net implementation is available. Feel free to add your model!
 
 ## Experiment tracking
 
@@ -206,9 +208,9 @@ creates the following entry in `logs/experiments.csv`:
 
 ## Tensorboard support
 
-For all training routines, Tensorboard logging is supported via (TensorboardX)[https://github.com/lanpa/tensorboardX],
+For all training routines, Tensorboard logging is supported via [TensorboardX](https://github.com/lanpa/tensorboardX),
 which is a part of the `dev.yml` dependencies. To display the written logfiles, a working installation
-of the original (Tensorboard)[https://www.tensorflow.org/guide/summaries_and_tensorboard] is needed (this is not contained in the dependencies).
+of the original [Tensorboard](https://www.tensorflow.org/guide/summaries_and_tensorboard) is needed (this is not contained in the dependencies).
 Tensorboard is included in every full installation of TensorFlow.
 
 By default, Tensorboard logs are dumped in `logs/tensorboardx/<name of the training run>`.
@@ -223,6 +225,17 @@ you changed to logging directory settings. See the actual training routines for 
 
 ## Datasets
 
+## Unit testing
+
+Unit tests are found under `tests` and are written in standard `unittest` format. However, then can conveniently be run
+using `pytest` and the recipe
+```
+make test
+```
+in the Makefile. Model unit tests under `tests.test_models` need a specific model, hyperparameters and weight files.
+See an example unit testing suite for the U-Net under `tests.test_models.test_unet` with the corresponding config.
+Model unit tests contain training time testing (backprop steps etc.) as well as tests for existing weight files
+in terms of consistency etc.
 
 ## Build documentation
 
