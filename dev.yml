@@ -4,6 +4,7 @@ channels:
   - anaconda
 dependencies:
   - fastai::fastai
+  - pytorch::ignite
   - pip
   - pip:
     - dvc[gs]
