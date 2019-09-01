@@ -1,20 +1,23 @@
 # Dida Deep Learning Tools
 
-
-## Package contents
-
-This package is designed as a collection of fully compatible and flexible
+This package is intended as a collection of fully compatible and flexible
 patterns for deep learning projects. Rather than giving a detailed implementation
 for every possible task 
 ("Why don't you have a *channel shuffle group transpose convolution layer*
 for my Wasserstein DCGAN"), we rather aim to provide templates and best practices for
-intuitive architectures.
+intuitive architectures. 
 
 Additionally, typical requirements such as Tensorboard logging, simple and extensible
-training schemes, experiment tracking and model testing are covered. 
+training schemes, experiment tracking and model testing are covered.
 
+If you use a very specific implementation of a layer/model/loss, you are invited to add your implementation here.
+ 
 **All components of the package are to be understood as a template which is designed to be
-easily modified - not a hard implementation of some specific model/layer/training**
+easily modified - not a hard implementation of some specific pattern.**
+
+## Package contents
+
+
 
 See below for an
 overview of the package contents:
@@ -65,10 +68,9 @@ overview of the package contents:
 ├── environment.yml // inference and test time dependencies
 ├── hyperparameter.py // WIP 
 ├── Makefile // generic project tasks: cleaning, docs, building dependencies etc.
-├── predict.py
+├── predict.py // example prediction CLI
 ├── README.md // this file
-├── run_prediction.py
-└── train.py
+└── train.py // example training CLI
 ```
 
 ## Dependencies and environments
@@ -160,7 +162,7 @@ train_config = {
         "recall": Loss(recall)
     },
     "DEVICE": torch.device("cuda"),
-        "LOGFILE": "experiments.csv",
+    "LOGFILE": "experiments.csv",
     "__COMMENT": None
 }
 ```
@@ -176,6 +178,30 @@ Everything can happen in the config, once the training routine is set up as desi
 
 ## Models
 
+
+## Experiment tracking
+
+All experiments run by the different training routines allow for a unified way of tracking in 
+a `.csv` file. This tracker files contains all experiment information such as date & time, model and model settings, 
+user comments, location and name of the used training routine and the 
+full information of the **training config** including all hyperparameters and used tools and their values (optmizers, losses, metrics...).
+
+The tracker file is found under `global_config["LOG_DIR"]/training_config["LOGFILE"]`. This path defaults to
+`logs/experiments.csv`, if the config files are not changed.
+
+All training routines are compatible with the experiment tracker file, i.e. different training routines can dump
+different information to a single tracker. Additionally, if a training routine is changed and new information is
+added to the config, the same tracker can be used.
+New columns are simply added whenever new hyperparameter names are added. If hyperparameters are removed from a training config file,
+the corresponding columns in the tracker file remain empty.
+
+As an example, a test run with the `training.fastai-training` routine for the `models.unet.UNET` implementation automatically
+creates the following entry in `logs/experiments.csv`:
+
+```
+,SESSION_NAME,ROUTINE_NAME,DATE,MODEL,MODEL_CONFIG,DATA_LOADER_CONFIG,LR,ONE_CYCLE,EPOCHS,LOSS,METRICS,MIXED_PRECISION,DEVICE,LOGFILE,__COMMENT,VAL_LOSS,VAL_METRICS,OPTIMIZER,OPTIMIZER_CONFIG
+0,training-run,<module 'training.fastai_training' from '../training/fastai_training.py'>,20190818-183110,<class 'models.unet.UNET'>,"{'ch_in': 12, 'ch_out': 2, 'n_recursions': 5, 'dropout': 0.2, 'use_shuffle': True, 'activ': <class 'torch.nn.modules.activation.ELU'>}","{'batch_size': 1, 'shuffle': True, 'pin_memory': True, 'num_workers': 8}",0.001,1.0,1,<function smooth_dice_loss at 0x7f6380118d90>,"[<function f1 at 0x7f6380118f28>, <function precision at 0x7f6380118e18>, <function recall at 0x7f6380118ea0>]",1.0,cuda,experiments.csv,None,0.88317925,,,
+```
 
 ## Datasets
 
