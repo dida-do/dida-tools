@@ -184,16 +184,17 @@ Everything can happen in the config, once the training routine is set up as desi
 All experiments run by the different training routines allow for a unified way of tracking in 
 a `.csv` file. This tracker files contains all experiment information such as date & time, model and model settings, 
 user comments, location and name of the used training routine and the 
-full information of the **training config** including all hyperparameters and used tools and their values (optmizers, losses, metrics...).
+full information of the **training config** including all hyperparameters and used tools and their values (optimizers, losses, metrics...).
 
-The tracker file is found under `global_config["LOG_DIR"]/training_config["LOGFILE"]`. This path defaults to
-`logs/experiments.csv`, if the config files are not changed.
+The tracker file is automatically created 
+under `global_config["LOG_DIR"]/training_config["LOGFILE"]`. This path defaults to
+`logs/experiments.csv`, if the config files are not changed. New training runs pointing to 
+an already existing tracker file are simply appended to the table.
 
 All training routines are compatible with the experiment tracker file, i.e. different training routines can dump
-different information to a single tracker. Additionally, if a training routine is changed and new information is
+their information to a single tracker. Additionally, if a training routine is changed and new information is
 added to the config, the same tracker can be used.
-New columns are simply added whenever new hyperparameter names are added. If hyperparameters are removed from a training config file,
-the corresponding columns in the tracker file remain empty.
+New columns are simply added whenever new hyperparameter names are added. If hyperparameters are removed from a training config file, the corresponding existing columns in the tracker file remain empty.
 
 As an example, a test run with the `training.fastai-training` routine for the `models.unet.UNET` implementation automatically
 creates the following entry in `logs/experiments.csv`:
@@ -202,6 +203,23 @@ creates the following entry in `logs/experiments.csv`:
 ,SESSION_NAME,ROUTINE_NAME,DATE,MODEL,MODEL_CONFIG,DATA_LOADER_CONFIG,LR,ONE_CYCLE,EPOCHS,LOSS,METRICS,MIXED_PRECISION,DEVICE,LOGFILE,__COMMENT,VAL_LOSS,VAL_METRICS,OPTIMIZER,OPTIMIZER_CONFIG
 0,training-run,<module 'training.fastai_training' from '../training/fastai_training.py'>,20190818-183110,<class 'models.unet.UNET'>,"{'ch_in': 12, 'ch_out': 2, 'n_recursions': 5, 'dropout': 0.2, 'use_shuffle': True, 'activ': <class 'torch.nn.modules.activation.ELU'>}","{'batch_size': 1, 'shuffle': True, 'pin_memory': True, 'num_workers': 8}",0.001,1.0,1,<function smooth_dice_loss at 0x7f6380118d90>,"[<function f1 at 0x7f6380118f28>, <function precision at 0x7f6380118e18>, <function recall at 0x7f6380118ea0>]",1.0,cuda,experiments.csv,None,0.88317925,,,
 ```
+
+## Tensorboard support
+
+For all training routines, Tensorboard logging is supported via (TensorboardX)[https://github.com/lanpa/tensorboardX],
+which is a part of the `dev.yml` dependencies. To display the written logfiles, a working installation
+of the original (Tensorboard)[https://www.tensorflow.org/guide/summaries_and_tensorboard] is needed (this is not contained in the dependencies).
+Tensorboard is included in every full installation of TensorFlow.
+
+By default, Tensorboard logs are dumped in `logs/tensorboardx/<name of the training run>`.
+The logging root directory is contained in `config.config.global_config["LOG_DIR"]` and can be changed appropriately.
+To access and visualize the logs, run 
+```
+tensorboard --logdir=logs/tensorboardx
+```
+in the default case - Tensorboard is now running on its default port `6006`, which you
+can for example access via SSH port forwarding, if you are on a remote machine. Change the `logdir` argument accordingly whenever
+you changed to logging directory settings. See the actual training routines for details about which information is logged.
 
 ## Datasets
 
