@@ -1,6 +1,4 @@
 """
-**models/unet.py**
-
 U-NET Architecture. We recursively build modules that downsample and upsample
 before concatenating with the copied input. Options exist for specifying the
 exact architecture required.
