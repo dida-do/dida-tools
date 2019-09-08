@@ -3,14 +3,8 @@
 
 # whitelist
 !*.py
-!*.md
 !*.txt
 !*.yml
 
-!.git/*
-
 !Makefile
-!Dockerfile
-!.gitignore
 !.pylintrc
-!.dockerignore
