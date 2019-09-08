@@ -2,8 +2,8 @@
 **models/unet.py**
 
 U-NET Architecture. We recursively build modules that downsample and upsample
-before concatinating with the copied input. Options exist for specifying the
-exact architecture reqiuired.
+before concatenating with the copied input. Options exist for specifying the
+exact architecture required.
 
 """
 
@@ -22,10 +22,10 @@ class UnetBulk(nn.Module):
                  use_shuffle :bool=True, activ: nn.Module=nn.ELU):
         super().__init__()
         """
-        :param ch_in: (int) number of input Channels
-        :param n_recursions: (int) number of times to repeat
-        :param use_shuffle: (bool) whether to use pixel shuffel or traditional deconvolution
-        :param dropout: (float or none) whether or not to use dropout and how much
+        :param ch_in: number of input Channels
+        :param n_recursions: number of times to repeat
+        :param use_shuffle: whether to use pixel shuffel or traditional deconvolution
+        :param dropout: whether or not to use dropout and how much
         """
         self.down = nn.Sequential(ConvLayer(ch_in, ch_in, stride=2, dropout=dropout, activ=activ),
                                   ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
@@ -64,12 +64,12 @@ class UNET(nn.Module):
                  use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU):
         super().__init__()
         """
-        :param ch_in: (int) number of input Channels
-        :param ch_out: (int) number of output Channels
-        :param bulk_ch: (int) initial channels for bulk
-        :param n_recursions: (int) number of times to repeat
-        :param use_shuffle: (bool) whether to use pixel shuffel or traditional deconvolution
-        :param dropout: (float or none) whether or not to use dropout and how much
+        :param ch_in: number of input Channels
+        :param ch_out: number of output Channels
+        :param bulk_ch: initial channels for bulk
+        :param n_recursions: number of times to repeat
+        :param use_shuffle: whether to use pixel shuffel or traditional deconvolution
+        :param dropout: whether or not to use dropout and how much
         """
         self.in_layer = ConvLayer(ch_in, bulk_ch, ks=1, pad=0, dropout=dropout, activ=activ)
 
