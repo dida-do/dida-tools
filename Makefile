@@ -28,7 +28,7 @@ env-dev:
 	conda env update -f dev.yml 
 
 env-remove:
-	conda remove --name pycloud-env --all
+	conda remove --name dl-repo-env --all
 
 doc:
 	mkdir -p docs/source/_static || true
