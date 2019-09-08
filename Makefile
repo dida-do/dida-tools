@@ -6,10 +6,10 @@ TESTFLAGS= -v
 .PHONY: help env env-dev env-remove doc clean-doc clean test lint docker-build docker-run
 
 help:
-	@echo "env 		- create the conda environment 'pycloud-env' based on environment.yml"
+	@echo "env 		- create the conda environment 'dl-repo' based on environment.yml"
 	@echo "env-dev		- runs 'make env' and installs additional development dependencies"
-	@echo "env-remove 	- remove 'pycloud-env'"
-	@echo "doc 		- build sphinx docs, requires pycloud-env"
+	@echo "env-remove 	- remove 'dl-repo'"
+	@echo "doc 		- build sphinx docs, requires 'dl-repo'"
 	@echo "clean-doc 	- remove binaries created by sphinx"
 	@echo "clean	- remove all compiled bytecode and doc binaries"
 	@echo "test		- run unit tests"
