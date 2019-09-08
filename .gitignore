@@ -1,6 +1,9 @@
 # ignore everything
 *
 
+# allow directories
+!*/
+
 # whitelist
 !*.py
 !*.md
