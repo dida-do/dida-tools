@@ -15,14 +15,13 @@ class ConvLayer(nn.Module):
                  ks: int=3, stride: int=1, dropout: Optional[float]=None,
                  activ: nn.Module=nn.ELU):
         """
-        :param ch_in: (int) number of input Channels
-        :param: ch_out: (int) number of output Channels
+        :param ch_in: number of input Channels
+        :param: ch_out: number of output Channels
 
-        :param pad: (int) number of pixels to pad by
-        :param ks: (int) kernel size
-        :param stride: (int) stride for convolution
-        :param dropout: (float or none) whether or not to use
-            dropout and how much
+        :param pad: number of pixels to pad by
+        :param ks: kernel size
+        :param stride: stride for convolution
+        :param dropout: whether or not to use dropout and how much
         """
         super().__init__()
         if dropout is not None:
@@ -52,12 +51,11 @@ class DeconvLayer(nn.Module):
                  stride: int=2, dropout: Optional[float]=None,
                  activ: nn.Module=nn.ELU):
         """
-        :param ch_in: (int) number of input Channels
-        :param ch_out: (int) number of output Channels
+        :param ch_in: number of input Channels
+        :param ch_out: number of output Channels
 
-        :param stride: (int) stride for deconvolution
-        :param dropout: (float or none) whether or not to use dropout
-            and how much
+        :param stride: stride for deconvolution
+        :param dropout: whether or not to use dropout and how much
         """
         super().__init__()
         self.conv = ConvLayer(ch_in, (stride**2) * ch_out, dropout=dropout, activ=activ)
@@ -69,7 +67,7 @@ class DeconvLayer(nn.Module):
 
 class TransConvLayer(nn.Module):
     """
-    Standard Convolutional Layer.
+    Standard Transposed Convolutional Layer.
     Combining convolution, activation and batchnorm
     """
     def __init__(self, ch_in: int, ch_out: int,
@@ -77,14 +75,13 @@ class TransConvLayer(nn.Module):
                  dropout: Optional[float]=None,
                  activ: nn.Module=nn.ELU):
         """
-        :param ch_in: (int) number of input Channels
-        :param ch_out: (int) number of output Channels
+        :param ch_in: number of input Channels
+        :param ch_out: number of output Channels
 
-        :param pad: (int) number of pixels to pad by
-        :param ks: (int) kernel size
-        :param stride: (int) stride for convolution
-        :param dropout: (float or none) whether or not to use
-            dropout and how much
+        :param pad: number of pixels to pad by
+        :param ks: kernel size
+        :param stride: stride for convolution
+        :param dropout: whether or not to use dropout and how much
         """
         super().__init__()
         if dropout is not None:
