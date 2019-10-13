@@ -22,7 +22,7 @@ def load_model(model: nn.Module, model_args: dict, model_weights: str, device: t
     """
     Given model class, instantiation arguments and weight file, load the model
     """
-    model = model(model_args)
+    model = model(**model_args)
     state_dict = torch.load(model_weights, map_location=device)
     model.load_state_dict(state_dict)
     return model
