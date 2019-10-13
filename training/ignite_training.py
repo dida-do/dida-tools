@@ -38,7 +38,7 @@ train_config = {
         "activ": ELU
     },
     "DATA_LOADER_CONFIG": {
-        "batch_size": 1,
+        "batch_size": 32,
         "shuffle": True,
         "pin_memory": True,
         "num_workers": 8
@@ -55,18 +55,16 @@ train_config = {
         "recall": Loss(recall)
     },
     "DEVICE": torch.device("cuda"),
-        "LOGFILE": "experiments.csv",
+    "LOGFILE": "experiments.csv",
     "__COMMENT": None
 }
 
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
           training_config: dict=train_config, global_config: dict=global_config):
     """
-    Template training routine. Takes a training and a test dataset wrapped
+    Template ignite training routine. Takes a training and a test dataset wrapped
     as torch.utils.data.Dataset type and two corresponding generic
     configs for both gobal path settings and training settings.
-    Returns the fitted fastai.train.Learner object which can be
-    used to assess the resulting metrics and error curves etc.
     """
     
     for path in global_config.values():
@@ -103,8 +101,9 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         iteration = (engine.state.iteration - 1) % len(train_loader) + 1
         writer.add_scalar("training/loss", engine.state.output, engine.state.iteration)
         if iteration % 4 == 0:
-            print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
-                  "".format(engine.state.epoch, iteration, len(train_loader), engine.state.output), end="")
+            print("\repoch[{}] iteration[{}/{}] loss: {:.2f} ".format(engine.state.epoch, 
+                                                                      iteration, len(train_loader), 
+                                                                      engine.state.output), end="")
             
     # generic evaluation function
     def evaluate(engine, loader):
@@ -141,7 +140,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         trainer.run(train_loader, max_epochs=training_config["EPOCHS"])
     except KeyboardInterrupt:
         torch.save(model.state_dict(), modelpath +  ".pth")
-        print("Model saved to {}".format(modelpath + "pth"))
+        print("Model saved to {}".format(modelpath + ".pth"))
         raise KeyboardInterrupt
     
     # write weights
