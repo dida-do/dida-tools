@@ -131,7 +131,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
             print(test_losses)
 
             # best model checkpointing
-            if torch.all(loss >= torch.stack(test_losses, dim=0)):
+            if torch.all(loss <= torch.stack(test_losses, dim=0)):
                 torch.save(model.state_dict(), modelpath + "bestmodel" + ".pth")
                 print("Best model saved to {}".format("bestmodel" + ".pth"))
 
