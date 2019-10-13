@@ -145,7 +145,7 @@ train_config = {
         "activ": ELU
     },
     "DATA_LOADER_CONFIG": {
-        "batch_size": 1,
+        "batch_size": 32,
         "shuffle": True,
         "pin_memory": True,
         "num_workers": 8
