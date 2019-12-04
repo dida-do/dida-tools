@@ -24,7 +24,7 @@ def load_model(model: nn.Module, model_args: dict, model_weights: str, device: t
     """
     model = model(**model_args)
     state_dict = torch.load(model_weights, map_location=device)
-    model.load_state_dict(state_dict)
+    model.load_state_dict(state_dict["model"])
     return model
 
 def forward(model: nn.Module, inputs: torch.Tensor, device: torch.device):
