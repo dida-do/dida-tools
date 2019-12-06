@@ -28,8 +28,9 @@ class NpyDataset(torch.utils.data.Dataset):
         self.x_dir = x_dir
         self.y_dir = y_dir
 
-        self.x_list = os.listdir(x_dir)
-        self.y_list = os.listdir(y_dir)
+        # sort is needed for order in data
+        self.x_list = np.sort(os.listdir(x_dir))
+        self.y_list = np.sort(os.listdir(y_dir))
 
     def __len__(self):
         return len(self.x_list)
