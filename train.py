@@ -74,7 +74,7 @@ if __name__ == "__main__":
                                                        fastai_training.train_config,
                                                        global_config)
     
-    if args.notify:
+    if args.smtp:
         pp = pprint.PrettyPrinter(indent=4)
         content = pp.pformat(log_content)
         notifier.notify(content, subject=name)
