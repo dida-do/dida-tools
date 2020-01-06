@@ -17,9 +17,9 @@ import torch
 from torch.nn import ELU
 
 from config.config import global_config
-from models.unet import UNET
+from models.poolunet import UNET
 from utils.logging.csv import write_log
-from utils.loss import smooth_dice_loss, precision, recall, f1
+from utils.loss import smooth_dice_loss, inverse_smooth_dice_loss, smooth_dice_beta_loss, binary_cross_entropy, precision, recall, f1 #, masked_smooth_dice_loss, masked_precision, masked_recall, masked_f1
 from utils.path import create_dirs
 
 train_config = {
@@ -28,25 +28,25 @@ train_config = {
     "ROUTINE_NAME": sys.modules[__name__],
     "MODEL": UNET,
     "MODEL_CONFIG": {
-        "ch_in": 12,
-        "ch_out": 2,
-        "n_recursions": 5,
-        "dropout": .2,
+        "ch_in": 4,
+        "ch_out": 1,
+        "n_recursions": 3,
+        "dropout": .1,
         "use_shuffle": True,
         "activ": ELU
     },
     "DATA_LOADER_CONFIG": {
-        "batch_size": 64,
+        "batch_size":32,
         "shuffle": True,
         "pin_memory": True,
         "num_workers": 8
     },
     "LR": 1e-3,
     "ONE_CYCLE": True,
-    "EPOCHS":  100,
+    "EPOCHS":  1000,
     "LOSS": smooth_dice_loss,
-    "METRICS": [f1, precision, recall],
-    "MIXED_PRECISION": True,
+    "METRICS": [f1, precision, recall, smooth_dice_beta_loss, smooth_dice_loss],
+    "MIXED_PRECISION": False, #Default: True
     "DEVICE": torch.device("cuda"),
     "LOGFILE": "experiments.csv",
     "__COMMENT": None

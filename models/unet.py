@@ -58,7 +58,7 @@ class UNET(nn.Module):
     """
     Wrapper for UNET_Bulk together with input and output layers
     """
-    def __init__(self, ch_in: int=12, ch_out: int=2, bulk_ch: int=32, n_recursions: int=4,
+    def __init__(self, ch_in: int=4, ch_out: int=1, bulk_ch: int=32, n_recursions: int=4,
                  use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU):
         super().__init__()
         """
