@@ -52,8 +52,8 @@ class NpyDataset(torch.utils.data.Dataset):
             aug.Rotate180()
         ]
 
-        self.img_transforms = RandomApply(RandomChoice(img_transforms_list), p=1/7)
-        self.label_transforms = RandomApply(RandomChoice(label_transforms_list), p=1/7)
+        self.img_transforms = RandomApply([RandomChoice(img_transforms_list)], p=1/7)
+        self.label_transforms = RandomApply([RandomChoice(label_transforms_list)], p=1/7)
 
     def __len__(self):
         return len(self.x_list)
