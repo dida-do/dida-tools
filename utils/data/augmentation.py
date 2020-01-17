@@ -1,3 +1,5 @@
+#pylint: disable=R0903
+
 """
 This module contains generic data augmentation routines
 """
