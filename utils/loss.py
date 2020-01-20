@@ -45,7 +45,7 @@ def smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
 
     :returns dice_loss: (torch.Tensor) the dice loss
     '''
-    
+
     pred = torch.sigmoid(pred[:,0])
     target = (target[:,0] > 0).float() # TODO here I changed [:,0]
     

@@ -28,7 +28,7 @@ train_config = {
     "ROUTINE_NAME": sys.modules[__name__],
     "MODEL": UNET,
     "MODEL_CONFIG": {
-        "ch_in": 4,
+        "ch_in": 6,
         "ch_out": 1,
         "n_recursions": 3,
         "dropout": .1,
@@ -41,9 +41,9 @@ train_config = {
         "pin_memory": True,
         "num_workers": 8
     },
-    "LR": 1e-3,
+    "LR": 1e-4,
     "ONE_CYCLE": True,
-    "EPOCHS":  1000,
+    "EPOCHS":  3000,
     "LOSS": smooth_dice_loss,
     "METRICS": [f1, precision, recall, smooth_dice_beta_loss, smooth_dice_loss],
     "MIXED_PRECISION": False, #Default: True
