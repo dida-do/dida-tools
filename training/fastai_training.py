@@ -21,6 +21,7 @@ from models.poolunet import UNET
 from utils.logging.csv import write_log
 from utils.loss import smooth_dice_loss, inverse_smooth_dice_loss, smooth_dice_beta_loss, binary_cross_entropy, precision, recall, f1
 from utils.path import create_dirs
+from utils.torchutils import load_model
 
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -41,6 +42,7 @@ train_config = {
         "pin_memory": True,
         "num_workers": 8
     },
+    "WEIGHTS": "/home/dida/ASMSpotter/esa-mining/deep-learning-tools/weights/bestmodel.pth",
     "LR": 1e-3,
     "ONE_CYCLE": True,
     "EPOCHS":  3000,
@@ -71,7 +73,12 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     databunch = DataBunch(train_loader, test_loader)
 
     # instantiate model and learner
-    model = training_config["MODEL"](**training_config["MODEL_CONFIG"])
+    if training_config["WEIGHTS"] is None:
+        model = training_config["MODEL"](**training_config["MODEL_CONFIG"])
+    else:
+        model = load_model(training_config["MODEL"], training_config["MODEL_CONFIG"],
+                           training_config["WEIGHTS"], training_config["DEVICE"])
+
     learner = Learner(databunch, model, metrics=train_config["METRICS"],
                       path=global_config["ROOT_PATH"], model_dir=global_config["WEIGHT_DIR"],
                       loss_func=train_config["LOSS"])
