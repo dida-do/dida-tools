@@ -19,7 +19,7 @@ from torch.nn import ELU
 from config.config import global_config
 from models.poolunet import UNET
 from utils.logging.csv import write_log
-from utils.loss import smooth_dice_loss, inverse_smooth_dice_loss, smooth_dice_beta_loss, binary_cross_entropy, precision, recall, f1 #, masked_smooth_dice_loss, masked_precision, masked_recall, masked_f1
+from utils.loss import smooth_dice_loss, inverse_smooth_dice_loss, smooth_dice_beta_loss, binary_cross_entropy, precision, recall, f1
 from utils.path import create_dirs
 
 train_config = {
@@ -41,11 +41,11 @@ train_config = {
         "pin_memory": True,
         "num_workers": 8
     },
-    "LR": 1e-4,
+    "LR": 1e-3,
     "ONE_CYCLE": True,
     "EPOCHS":  3000,
     "LOSS": smooth_dice_loss,
-    "METRICS": [f1, precision, recall, smooth_dice_beta_loss, smooth_dice_loss],
+    "METRICS": [f1, precision, recall, smooth_dice_loss],
     "MIXED_PRECISION": False, #Default: True
     "DEVICE": torch.device("cuda"),
     "LOGFILE": "experiments.csv",
