@@ -42,7 +42,7 @@ train_config = {
         "pin_memory": True,
         "num_workers": 8
     },
-    "WEIGHTS": "/home/dida/ASMSpotter/esa-mining/deep-learning-tools/weights/bestmodel.pth",
+    "WEIGHTS": None,
     "LR": 1e-3,
     "ONE_CYCLE": True,
     "EPOCHS":  100,
