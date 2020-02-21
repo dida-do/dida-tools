@@ -16,17 +16,11 @@ log.log_metric('Loss', 0.1)
 
 with Log(training_config) as log:
     log.log_metric('Loss', 0.1)
-    
-  or
-
-Autolog(training_config)
-
-#some pytorch training loop. 
 '''
 
 import mlflow
 from config.config import global_config
-from mlflow.xgboost import autolog
+#from mlflow.pytorch import autolog
 
 class Log():
     
@@ -85,11 +79,12 @@ start the training run.
 For more information check out the mlflow documentation."""
     
     
-class Autolog(Log):
-    '''Only implemented for pytorch here. Though there are mlflow integrations for other frameworks like TensorFlow.
-    Just import them instead of the pytorch one if you need them or directly use mlflow.'''
+# Not in release version of MLFlow yet. Will be activated when it comes to stable
+#class Autolog(Log):
+#    '''Only implemented for pytorch here. Though there are mlflow integrations for other frameworks like TensorFlow.
+#    Just import them instead of the pytorch one if you need them or directly use mlflow.'''
     
-    def __init__(self) -> str:
-        super().__init__()
-        autolog()
+#    def __init__(self) -> str:
+#        super().__init__()
+#        autolog()
         
