@@ -79,7 +79,8 @@ start the training run.
 For more information check out the mlflow documentation."""
     
     
-# Not in release version of MLFlow yet. Will be activated when it comes to stable
+# Not in release version of MLFlow yet. Will be activated when it comes to stable. 
+# Note that some frameworks like TensorFlow already work with autolog. See the mlflow docu to learn more. 
 #class Autolog(Log):
 #    '''Only implemented for pytorch here. Though there are mlflow integrations for other frameworks like TensorFlow.
 #    Just import them instead of the pytorch one if you need them or directly use mlflow.'''
