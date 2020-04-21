@@ -18,7 +18,7 @@ from torch.nn import ELU
 
 from config.config import global_config
 from models.unet import UNET
-from utils.logging.csv import write_log
+from utils.logging.csvinterface import write_log
 from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
 from utils.torchutils import load_model
