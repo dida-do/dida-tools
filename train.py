@@ -37,7 +37,7 @@ from models.unet import UNET
 from utils.data import datasets
 from utils.notify import smtp
 
-from training import fastai_training
+from training import pytorch_training
 
 
 def cli():
@@ -70,8 +70,8 @@ if __name__ == "__main__":
                                     os.path.join(global_config["DATA_DIR"], 'test/y'))
 
     #pass configuration and datasets to training routine
-    learner, log_content, name = fastai_training.train(train_data, test_data,
-                                                       fastai_training.train_config,
+    learner, log_content, name = pytorch_training.train(train_data, test_data,
+                                                       pytorch_training.train_config,
                                                        global_config)
     
     if args.smtp:

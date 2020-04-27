@@ -23,6 +23,7 @@ from models.unet import UNET
 from utils.logging.csvinterface import write_log
 from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
+import utils.logging.log as log
 
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -95,6 +96,9 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     log_dir = os.path.join(global_config["LOG_DIR"], "tensorboardx", name)
     create_dirs(log_dir)
     writer = SummaryWriter(logdir=log_dir)
+    
+    # log using the logging tool
+    logger = log.Log(training_config, run_name=train_config['SESSION_NAME'])
 
     @trainer.on(Events.ITERATION_COMPLETED)
     def log_training(engine):
@@ -118,6 +122,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         metrics = evaluate(engine, train_loader)
         print(metrics)
         for key, value in metrics.items():
+            logger.log_metric(key, value)
             writer.add_scalar("training/avg_{}".format(key), value, engine.state.epoch)
              
     # test data metrics
@@ -152,3 +157,6 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     log_content["VAL_METRICS"] = evaluator.state.metrics
     log_path = os.path.join(global_config["LOG_DIR"], training_config["LOGFILE"])
     write_log(log_path, log_content)
+    
+    #end logging using the logging tool (cleaner but not necessary)
+    logger.end_run()

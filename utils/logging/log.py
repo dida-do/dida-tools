@@ -8,46 +8,49 @@ which you can access in browser.
 
 from utils.logging.log import Log, Autolog
 
-log = Log(training_config)
-log.log_param('Architecture', 'CNN') 
-log.log_metric('Loss', 0.1)
+logger = Log(training_config)
+logger.log_hyperparameters({'Architecture': 'CNN', 'Learning rate': 0.001}) 
+logger.log_metric('Loss', 0.1)
 
   or 
 
-with Log(training_config) as log:
-    log.log_metric('Loss', 0.1)
+with Log(training_config) as logger:
+    logger.log_metric('Loss', 0.1)
 '''
 
 import mlflow
 from config.config import global_config
-#from mlflow.pytorch import autolog
 
 class Log():
     
     def __init__(self, 
-                 training_config : dict = None,
+                 train_config : dict = None,
                  run_id: str = None, 
                  experiment_id: str = None, 
                  run_name: str = None, 
                  nested: bool = False) -> None:
+
         
         mlflow.end_run()
         mlflow.start_run(run_id=run_id, 
                          experiment_id=experiment_id, 
                          run_name=run_name, 
                          nested=nested)
-        mlflow.log_params(global_config)
-        if training_config:
-            mlflow.log_params(training_config)
+        self.log_hyperparameters(global_config)
+        if train_config:
+            mlflow.log_params(train_config)
         
-    def log_param(self, key: str, value: str, *args) -> None:
-        mlflow.log_param(key, value, *args)
-        
-    def log_params(self, params: {str}) -> None:
-        mlflow.log_param(key, value, *args)
+    def log_hyperparameters(self, params: {str}, *args) -> None:
+        mlflow.log_params(params, *args)
         
     def log_metric(self, key: str, value: str, *args) -> None:
         mlflow.log_metric(key, value, *args)
+        
+    def log_metrics(self, metrics: {str}, *args) -> None:
+        mlflow.log_metrics(metrics, *args)
+        
+    def access_run(self):
+        return mlflow.active_run()
         
     def end_run(self) -> None:
         mlflow.end_run()
@@ -84,6 +87,8 @@ For more information check out the mlflow documentation."""
 #class Autolog(Log):
 #    '''Only implemented for pytorch here. Though there are mlflow integrations for other frameworks like TensorFlow.
 #    Just import them instead of the pytorch one if you need them or directly use mlflow.'''
+
+# from mlflow.pytorch import autolog
     
 #    def __init__(self) -> str:
 #        super().__init__()

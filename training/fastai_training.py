@@ -22,6 +22,7 @@ from utils.logging.csvinterface import write_log
 from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
 from utils.torchutils import load_model
+import utils.logging.log as log
 
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -114,6 +115,12 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     learner.save(modelpath)
     val_loss = min(learner.recorder.val_losses)
     val_metrics = learner.recorder.metrics
+    
+    # log using the logging tool
+    logger = log.Log(train_config, run_name=train_config['SESSION_NAME'])
+    logger.log_metric('Validation Loss', val_loss)
+    logger.log.metrics(val_metrics)
+    logger.end_run()
 
     #write csv log file
     log_content = train_config.copy()

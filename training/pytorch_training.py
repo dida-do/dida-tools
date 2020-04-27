@@ -24,6 +24,7 @@ from models.unet import UNET
 from utils.logging.csvinterface import write_log
 from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
+import utils.logging.log as log
 
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -87,71 +88,78 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     log_dir = os.path.join(global_config["LOG_DIR"], "tensorboardx", name)
     create_dirs(log_dir)
     writer = SummaryWriter(logdir=log_dir)
-
+    
     test_losses = []
 
-    try:
-        for epoch in range(training_config["EPOCHS"]):
-            batch = 0
+    with log.Log(train_config=train_config, run_name=train_config['SESSION_NAME']) as logger:
+    
+        try:
+            for epoch in range(training_config["EPOCHS"]):
+                batch = 0
 
-            for x, y in train_loader:
+                for x, y in train_loader:
 
-                x = x.to(training_config["DEVICE"], non_blocking=True)
-                y = y.to(training_config["DEVICE"], non_blocking=True)
-
-                optimizer.zero_grad()
-                output = model(x)
-
-                loss = training_config["LOSS"](output, y)
-                loss.backward()
-                optimizer.step()
-
-                print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
-                  "".format(epoch, batch, int(len(train_dataset) / training_config["DATA_LOADER_CONFIG"]["batch_size"]),
-                            loss, end=""))
-                batch += 1
-
-            # evaluation loop
-            # NOTE: evaluation is performed w.r.t. model loss on chosen device, all outputs are stored for global verification dataset loss
-            with torch.no_grad():
-                y_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
-                y_hat_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
-                for x, y in test_loader:
                     x = x.to(training_config["DEVICE"], non_blocking=True)
                     y = y.to(training_config["DEVICE"], non_blocking=True)
 
-                    model.eval()
+                    optimizer.zero_grad()
                     output = model(x)
-                    y_vec = torch.cat([y_vec, y])
-                    y_hat_vec = torch.cat([y_hat_vec, output])
 
-            # TODO tensorboard loss logging
-            loss = training_config["LOSS"](y_hat_vec, y_vec)
-            test_losses.append(loss)
-            print(test_losses)
+                    loss = training_config["LOSS"](output, y)
+                    loss.backward()
+                    optimizer.step()
+                    
+                    logger.log_metric('Training Loss', loss)
 
-            # best model checkpointing
-            if torch.all(loss <= torch.stack(test_losses, dim=0)):
-                torch.save(model.state_dict(), modelpath + "bestmodel" + ".pth")
-                print("Best model saved to {}".format("bestmodel" + ".pth"))
+                    print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
+                      "".format(epoch, batch, int(len(train_dataset) / training_config["DATA_LOADER_CONFIG"]["batch_size"]),
+                                loss, end=""))
+                    batch += 1
 
-            # epoch checkpointing
+                # evaluation loop
+                # NOTE: evaluation is performed w.r.t. model loss on chosen device, all outputs are stored for global verification dataset loss
+                with torch.no_grad():
+                    y_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
+                    y_hat_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
+                    for x, y in test_loader:
+                        x = x.to(training_config["DEVICE"], non_blocking=True)
+                        y = y.to(training_config["DEVICE"], non_blocking=True)
+
+                        model.eval()
+                        output = model(x)
+                        y_vec = torch.cat([y_vec, y])
+                        y_hat_vec = torch.cat([y_hat_vec, output])
+
+                # TODO tensorboard loss logging
+                loss = training_config["LOSS"](y_hat_vec, y_vec)
+                test_losses.append(loss)
+                print(test_losses)
+                
+                #logging using the logging tool
+                logger.log_metric('Evaluation Loss', loss)
+
+                # best model checkpointing
+                if torch.all(loss <= torch.stack(test_losses, dim=0)):
+                    torch.save(model.state_dict(), modelpath + "bestmodel" + ".pth")
+                    print("Best model saved to {}".format("bestmodel" + ".pth"))
+
+                # epoch checkpointing
+                torch.save(model.state_dict(), modelpath + ".pth")
+                print("Checkpoint saved to {}".format(modelpath + ".pth"))
+
+        except KeyboardInterrupt:
             torch.save(model.state_dict(), modelpath + ".pth")
-            print("Checkpoint saved to {}".format(modelpath + ".pth"))
+            print("Model saved to {}".format(modelpath + ".pth"))
+            raise KeyboardInterrupt
 
-    except KeyboardInterrupt:
-        torch.save(model.state_dict(), modelpath + ".pth")
+        # write weights
+        torch.save(model.state_dict(), modelpath +  ".pth")
         print("Model saved to {}".format(modelpath + ".pth"))
-        raise KeyboardInterrupt
 
-    # write weights
-    torch.save(model.state_dict(), modelpath +  ".pth")
-    print("Model saved to {}".format(modelpath + ".pth"))
-
-    # write csv log file
-    log_content = training_config.copy()
-    log_content["VAL_LOSS"] = test_losses[-1]
-    #evaluator.run(test_loader)
-    #log_content["VAL_METRICS"] = evaluator.state.metrics
-    log_path = os.path.join(global_config["LOG_DIR"], training_config["LOGFILE"])
-    write_log(log_path, log_content)
+        # write csv log file
+        log_content = training_config.copy()
+        log_content["VAL_LOSS"] = test_losses[-1]
+        #evaluator.run(test_loader)
+        #log_content["VAL_METRICS"] = evaluator.state.metrics
+        log_path = os.path.join(global_config["LOG_DIR"], training_config["LOGFILE"])
+        write_log(log_path, log_content)
