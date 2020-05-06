@@ -4,6 +4,7 @@ This module contains generic pytorch losses for training.
 
 import sys
 import torch
+from torch.nn import functional as F
 
 def get_loss(name: str):
     """
@@ -42,6 +43,46 @@ def smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
     intersection = (pred.view(-1) * target.view(-1)).sum()
 
     return 1 - ((2. * intersection + smooth) / (pred.sum() + target.sum() + smooth + eps))
+
+def dice_bce_sum(pred: torch.Tensor,
+                 target: torch.Tensor,
+                 weight: float=0.5,
+                 smooth: float=1.,
+                 eps: float=1e-6):
+    """Weighted sum of smooth dice loss and binary cross entropy"""
+    
+    return weight * smooth_dice_loss(pred, target, smooth, eps) + (1 - target) * F.binary_cross_entropy_with_logits(pred, target)
+
+def multi_class_smooth_dice_loss(pred: torch.Tensor,
+                                 target: torch.Tensor,
+                                 smooth: float=1.,
+                                 eps: float=1e-6):
+    """Smooth Dice loss for multi class classification."""
+    
+    prob = F.softmax(inputs, dim=1)
+    
+    with torch.no_grad():
+        num_class = inputs.size(1)
+        targets_oh = torch.eye(num_class, device=inputs.get_device())[targets.squeeze(1)]
+        targets_oh = targets_oh.permute(0, 3, 1, 2).float()
+        
+        dims = (0,) + tuple(range(2, targets_oh.ndimension()))
+        
+        intersect = torch.sum(prob * targets_oh, dims)
+        cardinality = torch.sum(prob + targets_oh, dims)
+        
+        return 1. - ((2. * intersect + self.smooth) / (cardinality + self.smooth)).mean()
+    
+def multi_class_dice_ce_sum(pred: torch.Tensor,
+                            target: torch.Tensor,
+                            weight: float=0.5,
+                            smooth: float=1.,
+                            eps: float=1e-6):
+    """Sum of cross entropy and dice loss for multi class case"""
+    
+    target = target.long()
+    
+    return weight * multi_class_smooth_dice_loss(pred, target, smooth, eps) + (1. - weight) * F.cross_entropy(pred, target)
 
 def precision(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
     '''
