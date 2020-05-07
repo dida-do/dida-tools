@@ -3,8 +3,8 @@
 import pytorch_lightning as pl
 from argparse import Namespace
 
-from lightning_modules.binary_segmentation_module import BinarySegmentationModule
-from lightning_modules.multi_class_segmentation_module import MultiClassSegmentationModule
+from training.lightning_modules.binary_segmentation_module import BinarySegmentationModule
+from training.lightning_modules.multi_class_segmentation_module import MultiClassSegmentationModule
 
 train_config = {
     "arch": "unet",
@@ -26,7 +26,7 @@ train_config = {
     "mode": "max",
     "patience": 10,
     "ch_out": 256,
-    "output_weights": "lclu_pretraining_weights.pt",
+    "output_weights": "weights.pt",
     "no_data_aug": False,
     "epochs_til_unfreezing": 0,
 }
@@ -39,7 +39,7 @@ modules = {
 def train(training_config: dict=train_config):
     """Wrapper function for pytorch lightning training"""
     
-    hparams = Namespace(**train_config)
+    hparams = Namespace(**training_config)
     module = modules[hparams.task](hparams)
     trainer = pl.Trainer(gpus=hparams.gpus,
                          use_amp=hparams.use_16_bit,

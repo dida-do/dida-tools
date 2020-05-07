@@ -2,7 +2,7 @@
 
 also supports multiple sigmoid predictions per pixel"""
 
-from base_lightning_module import BaseModule
+from training.lightning_modules.base_lightning_module import BaseModule
 from utils.data.datasets import SegmentationDataset
 from utils.preprocessing import get_preprocess, augmentation
 from utils.loss import smooth_dice_loss, dice_bce_sum

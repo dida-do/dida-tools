@@ -1,5 +1,9 @@
 """Utilities for converting functions to callable classes"""
 
+from typing import Callable
+from dataclasses import make_dataclass, field
+import inspect
+
 def snake2camal(string: str) -> str:
     """Change string from snake_case to CamalCase"""
     return ''.join(word.title() for word in string.split('_'))

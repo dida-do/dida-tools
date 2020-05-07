@@ -1,10 +1,11 @@
 """Main pytorch lightning module for multi class segmentation"""
 
-from base_lightning_module import BaseModule
+from training.lightning_modules.base_lightning_module import BaseModule
 from utils.data.datasets import SegmentationDataset
 from utils.preprocessing import get_preprocess, augmentation
 from utils.loss import multi_class_smooth_dice_loss, multi_class_dice_ce_sum
 from utils.cmap import GeoTIFFColourMap
+from utils.objectise import objectise
 
 import os
 import torch
