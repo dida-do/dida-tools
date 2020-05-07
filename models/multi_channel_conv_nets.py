@@ -9,7 +9,7 @@ import torch
 from torch import nn
 from torchvision import models
 from collections import OrderedDict
-from unet import UNET
+from models.unet import UNET
 
 # This could be implemented using the module.__dict__ attr, not sure if that is nicer...
 SEG_MODELS = {
