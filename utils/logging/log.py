@@ -73,7 +73,7 @@ It makes sense to call the Log Object including the training_config provided in 
 Most important parameters are already included there and are useful to be logged. 
 
 If you want to view the logged results you should start `mlflow ui` in a terminal.
-Then you can access it via your browser. The default port is 5000
+Then you can access it via your browser. The default port is 5000.
 
 The runs will be saved in a directory called mlruns which will be created in the directory where you 
 start the training run.
