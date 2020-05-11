@@ -3,7 +3,7 @@ import rasterio
 import torch
 
 class GeoTIFFColourMap:
-    """Extract the colourmap from a geotif file then use that to colour an array"""
+    """Extract the colourmap from a Geotiff file then use that to colour an array"""
     def __init__(self, geotif_file):
         with rasterio.open(geotif_file) as src:
             colour_dict = {k: (r, g, b) for k, (r, g, b, a) in src.colormap(1).items()}

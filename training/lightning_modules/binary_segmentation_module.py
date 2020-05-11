@@ -1,6 +1,4 @@
-"""Main pytorch lightning module for binary segmentation,
-
-also supports multiple sigmoid predictions per pixel"""
+"""Main pytorch lightning module for binary segmentation, also supports multiple sigmoid predictions per pixel"""
 
 from training.lightning_modules.base_lightning_module import BaseModule
 from utils.data.datasets import SegmentationDataset

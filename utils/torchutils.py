@@ -74,3 +74,8 @@ def assert_lowerbound(tensor, val):
 def assert_nonzero(tensor):
     assert (tensor != 0).all()
     
+def set_module_trainable(module: nn.Module, mode: bool) -> None:
+    """Freeze or unfreeze weights"""
+    for param in module.parameters():
+        param.requires_grad = mode
+    
