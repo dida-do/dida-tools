@@ -17,9 +17,9 @@ import torch
 from torch.nn import ELU
 
 from config.config import global_config
-from models.poolunet import UNET
+from models.unet import UNET
 from utils.logging.csv import write_log
-from utils.loss import smooth_dice_loss, inverse_smooth_dice_loss, smooth_dice_beta_loss, binary_cross_entropy, precision, recall, f1
+from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
 from utils.torchutils import load_model
 
@@ -29,26 +29,27 @@ train_config = {
     "ROUTINE_NAME": sys.modules[__name__],
     "MODEL": UNET,
     "MODEL_CONFIG": {
-        "ch_in": 6,
-        "ch_out": 1,
-        "n_recursions": 3,
-        "dropout": .1,
+        "ch_in": 12,
+        "ch_out": 2,
+        "n_recursions": 5,
+        "dropout": .2,
         "use_shuffle": True,
-        "activ": ELU
+        "activ": ELU,
+        "use_pooling": True
     },
     "DATA_LOADER_CONFIG": {
-        "batch_size":32,
+        "batch_size": 64,
         "shuffle": True,
         "pin_memory": True,
         "num_workers": 8
     },
-    "WEIGHTS": "/home/dida/ASMSpotter/esa-mining/deep-learning-tools/weights/bestmodel.pth",
+    "WEIGHTS": None,
     "LR": 1e-3,
     "ONE_CYCLE": True,
-    "EPOCHS":  3000,
+    "EPOCHS":  100,
     "LOSS": smooth_dice_loss,
-    "METRICS": [f1, precision, recall, smooth_dice_loss],
-    "MIXED_PRECISION": False, #Default: True
+    "METRICS": [f1, precision, recall],
+    "MIXED_PRECISION": True,
     "DEVICE": torch.device("cuda"),
     "LOGFILE": "experiments.csv",
     "__COMMENT": None
@@ -123,4 +124,4 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     write_log(log_path, log_content)
 
     return learner, log_content, name
-    
+
