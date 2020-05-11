@@ -157,6 +157,5 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     log_content["VAL_METRICS"] = evaluator.state.metrics
     log_path = os.path.join(global_config["LOG_DIR"], training_config["LOGFILE"])
     write_log(log_path, log_content)
-    
-    #end logging using the logging tool (cleaner but not necessary)
+
     logger.end_run()
