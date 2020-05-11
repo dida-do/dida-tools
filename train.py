@@ -1,7 +1,7 @@
 """
 Contains a template command line interface for training.
 
-As an example, the training.fastai_training template routine is used
+As an example, the training.pytorch_training template routine is used
 in combination with the models.unet.UNET model.
 
 The data loading is provided by a generic .npy array wrapper
