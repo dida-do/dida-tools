@@ -1,3 +1,6 @@
+# TODO suppress pylint for Exactly one space required around keyword argument assignment
+#pylint: disable=C0326
+
 """
 U-NET Architecture. We recursively build modules that downsample and upsample
 before concatenating with the copied input. Options exist for specifying the
@@ -17,17 +20,26 @@ class UnetBulk(nn.Module):
     Recursively build a U-NET
     """
     def __init__(self, ch_in: int=32, n_recursions: int=4, dropout: Optional[float]=None,
-                 use_shuffle :bool=True, activ: nn.Module=nn.ELU):
+                 use_shuffle :bool=True, activ: nn.Module=nn.ELU, use_pooling: bool=False):
         super().__init__()
         """
         :param ch_in: number of input Channels
         :param n_recursions: number of times to repeat
         :param use_shuffle: whether to use pixel shuffel or traditional deconvolution
         :param dropout: whether or not to use dropout and how much
+        :param use_pooling: whether to use pooling or strides for downsampling
         """
-        self.down = nn.Sequential(ConvLayer(ch_in, ch_in, stride=2, dropout=dropout, activ=activ),
-                                  ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
-                                  ConvLayer(ch_in, 2 * ch_in, dropout=dropout, activ=activ))
+        if use_pooling:
+            self.down = nn.Sequential(ConvLayer(ch_in, ch_in, stride=1,
+                                                dropout=dropout, activ=activ),
+                                      nn.MaxPool2d(2),
+                                      ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
+                                      ConvLayer(ch_in, 2 * ch_in, dropout=dropout, activ=activ))
+        else:
+            self.down = nn.Sequential(ConvLayer(ch_in, ch_in, stride=2,
+                                                dropout=dropout, activ=activ),
+                                      ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
+                                      ConvLayer(ch_in, 2 * ch_in, dropout=dropout, activ=activ))
 
         if n_recursions > 1:
             self.rec_unet = UnetBulk(ch_in=2*ch_in,
@@ -58,7 +70,7 @@ class UNET(nn.Module):
     """
     Wrapper for UNET_Bulk together with input and output layers
     """
-    def __init__(self, ch_in: int=4, ch_out: int=1, bulk_ch: int=32, n_recursions: int=4,
+    def __init__(self, ch_in: int=12, ch_out: int=2, bulk_ch: int=32, n_recursions: int=4,
                  use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU):
         super().__init__()
         """
