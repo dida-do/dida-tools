@@ -24,11 +24,11 @@ from config.config import global_config
 class Log():
     
     def __init__(self, 
-                 train_config : dict = None,
-                 run_id: str = None, 
-                 experiment_id: str = None, 
-                 run_name: str = None, 
-                 nested: bool = False) -> None:
+            train_config : dict = None,
+            run_id: str = None, 
+            experiment_id: str = None, 
+            run_name: str = None, 
+            nested: bool = False) -> None:
 
         mlflow.end_run()
         mlflow.start_run(run_id=run_id, 
