@@ -1,6 +1,6 @@
-"""Model architectures.
+"""Models for multi channel image data.
 
-Mostly this is a wrapper for torchvision models but it also supports my unet implementation from the deep learning repo."""
+Mostly this is a wrapper for torchvision models but it also supports our unet implementation from the deep learning repo."""
 
 import sys
 sys.path.append('../')
@@ -41,20 +41,20 @@ def modify_conv(conv_layer: nn.Module, ch_in: int) -> nn.Module:
     new_conv.bias = conv_layer.bias
     
     if ch_in < conv_layer.in_channels:
-        new_conv.weight.data = conv_layer.weight.data[:,:ch_in,:,:]
+        new_conv.weight.data = conv_layer.weight.data[:, :ch_in, :, :]
     elif ch_in > conv_layer.in_channels:
         multi = ch_in // conv_layer.in_channels
         last = ch_in % conv_layer.in_channels
-        new_conv.weight.data[:,:conv_layer.in_channels*multi,:,:] = torch.cat([conv_layer.weight.data for x in range(multi)], dim=1)
-        new_conv.weight.data[:,conv_layer.in_channels*multi:,:,:] = conv_layer.weight.data[:,:last,:,:]
+        new_conv.weight.data[:, :conv_layer.in_channels * multi, :, :] = torch.cat([conv_layer.weight.data for x in range(multi)], dim=1)
+        new_conv.weight.data[:, conv_layer.in_channels * multi:, :, :] = conv_layer.weight.data[:, :last, :, :]
     
     return new_conv
 
 class P2PModel(nn.Module):
-    def __init__(self, model_name: str="deeplabv3", ch_in: int=3, ch_out: int=3):
-        """Return a segmentation model
+    def __init__(self, model_name: str="deeplabv3", ch_in: int=3, ch_out: int=3, **kwargs):
+        """Return a segmentation model (pixel to pixel)
         
-        Would need modification for non torchvision resnent based model"""
+        Would need modification for non torchvision Resnent based model"""
         
         super().__init__()
         
@@ -63,7 +63,12 @@ class P2PModel(nn.Module):
         
         # The unet is a special case
         if model_name == "unet":
-            self.model = UNET(ch_in, ch_out, n_recursions=5, dropout=0.1)
+            if "n_recursions" not in kwargs:
+                kwargs["n_recursions"] = 5
+            if "dropout" not in kwargs:
+                kwargs["dropout"] = 0.1
+            
+            self.model = UNET(ch_in, ch_out, **kwargs)
         else:
             model = SEG_MODELS[model_name](pretrained=True)
         
@@ -92,8 +97,3 @@ def binary_clf_model(model_name: str="resnet18", ch_in: int=3) -> nn.Module:
     model.fc = nn.Linear(model.fc.in_features, 1, bias=True)
     
     return model
-
-def set_module_trainable(module: nn.Module, mode: bool) -> None:
-    """Freeze or unfreeze weights"""
-    for param in module.parameters():
-        param.requires_grad = mode

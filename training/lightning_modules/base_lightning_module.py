@@ -1,14 +1,14 @@
 """Main pytorch lightning module"""
 
-import pytorch_lightning as pl
-from models.multi_channel_conv_nets import P2PModel, set_module_trainable, binary_clf_model
-
+from argparse import ArgumentParser
+from models.multi_channel_conv_nets import P2PModel, binary_clf_model
 import os
+from pathlib import Path
+import pytorch_lightning as pl
+from sklearn.model_selection import train_test_split
 import torch
 from torch import nn
-from pathlib import Path
-from argparse import ArgumentParser
-from sklearn.model_selection import train_test_split
+from utils.torchutils import set_module_trainable
 
 class BaseModule(pl.LightningModule):
     """Base module, to be inhereted by specific modules."""
@@ -96,9 +96,9 @@ class BaseModule(pl.LightningModule):
         if self.adv_model is None:
             return [optimizer], [scheduler]
         else:
-            opt_d, sch_d = self.get_optims(self.adv_model.parameters(), self.hparams.learning_rate)
+            optimizer_disc, scheduler_disc = self.get_optims(self.adv_model.parameters(), self.hparams.learning_rate)
             
-            return [optimizer, opt_d], [scheduler, sch_d]
+            return [optimizer, optimizer_disc], [scheduler, scheduler_disc]
     
     def save_model(self, path):
         """Save a state dict only (Not including pytorch lightning specific data)"""

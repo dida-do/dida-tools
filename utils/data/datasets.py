@@ -184,7 +184,7 @@ class SegmentationDataset(torch.utils.data.Dataset):
         if self.aug is not None:
             initial_shape = x.shape
             initial_y_shape = y.shape
-            augmented  = self.aug(image=x, mask=y)
+            augmented = self.aug(image=x, mask=y)
             
             x = augmented["image"]
             y = augmented["mask"]
