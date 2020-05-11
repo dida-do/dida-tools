@@ -30,7 +30,6 @@ class Log():
                  run_name: str = None, 
                  nested: bool = False) -> None:
 
-        
         mlflow.end_run()
         mlflow.start_run(run_id=run_id, 
                          experiment_id=experiment_id, 
