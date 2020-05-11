@@ -112,12 +112,16 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
                     logger.log_metric('Training Loss', loss)
 
                     print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
-                      "".format(epoch, batch, int(len(train_dataset) / training_config["DATA_LOADER_CONFIG"]["batch_size"]),
-                                loss, end=""))
+                      "".format(epoch, 
+                                batch, 
+                                int(len(train_dataset) / training_config["DATA_LOADER_CONFIG"]["batch_size"]),
+                                loss, 
+                                end=""))
                     batch += 1
 
                 # evaluation loop
-                # NOTE: evaluation is performed w.r.t. model loss on chosen device, all outputs are stored for global verification dataset loss
+                # NOTE: evaluation is performed w.r.t. model loss on chosen device, 
+                # all outputs are stored for global verification dataset loss
                 with torch.no_grad():
                     y_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
                     y_hat_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
