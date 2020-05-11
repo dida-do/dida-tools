@@ -1,7 +1,9 @@
 #pylint: disable=R0903
 
 """
-This module contains generic data augmentation routines
+This module contains generic data augmentation routines for images.
+It expects channels-first ordering (c, h, w) for with any number
+of channels.
 """
 
 import torch
