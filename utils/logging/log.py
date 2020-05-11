@@ -63,7 +63,7 @@ class Log():
     def help(self) -> str:
         return """This Log module is a wrapper of mlflow. 
 The Hyperparameters are values that differentiate the runs from each other and do not change during a run. 
-Like the learning rate. 
+Like the batch size. 
 Metrics are values that change due the run. Like the loss value.
         
 There are versions of log_param() and log_metric() that log multiple values in a dictionary at once.
