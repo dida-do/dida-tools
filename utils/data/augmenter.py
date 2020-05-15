@@ -37,7 +37,7 @@ class Augmenter():
         :param image: (ndarray or torch.Tensor or PIL.Image.Image) image to apply augmentations
         :param target: (ndarray or torch.Tensor or PIL.Image.Image) target of image (default: None)
 
-        :rtype (ndarray) or (ndarray, ndarray) returns changed image and optimally the target
+        :rtype (ndarray) or (ndarray, ndarray) returns changed image and optionally the target
         '''
         if target is None:
             return self.__single_transform(image)
