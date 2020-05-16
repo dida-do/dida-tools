@@ -3,12 +3,11 @@ Contains wrapper for torch.utils.data.Dataset derived classes
 """
 
 import os
-import random
 import numpy as np
-from torchvision.transforms import RandomApply, RandomChoice
 import torch
 import torch.utils.data
-import utils.data.augmentation as aug
+from albumentations import HorizontalFlip, VerticalFlip, Rotate
+from utils.data.augmenter import Augmenter
 
 class NpyDataset(torch.utils.data.Dataset):
     '''
@@ -34,29 +33,12 @@ class NpyDataset(torch.utils.data.Dataset):
         self.x_list = np.sort(os.listdir(x_dir))
         self.y_list = np.sort(os.listdir(y_dir))
 
-        img_transforms_list = [
-            aug.HorizontalFlip(),
-            aug.VerticalFlip(),
-            aug.GaussianNoise(mean=0.5, std=0.05),
-            aug.Rotate90left(),
-            aug.Rotate90right(),
-            aug.Rotate180()
-        ]
+        transforms = [
+            VerticalFlip(p=.33),
+            HorizontalFlip(p=.33),
+            Rotate(p=.33)]
 
-        label_transforms_list = [
-            aug.HorizontalFlip(),
-            aug.VerticalFlip(),
-            aug.Identity(),
-            aug.Rotate90left(),
-            aug.Rotate90right(),
-            aug.Rotate180()
-        ]
-
-        assert len(img_transforms_list) == len(label_transforms_list)
-        p = 1 - 1/len(img_transforms_list)
-
-        self.img_transforms = RandomApply([RandomChoice(img_transforms_list)], p=p)
-        self.label_transforms = RandomApply([RandomChoice(label_transforms_list)], p=p)
+        self.augmenter = Augmenter(list_of_transforms=transforms, p=.9)
 
     def __len__(self):
         return len(self.x_list)
@@ -70,19 +52,10 @@ class NpyDataset(torch.utils.data.Dataset):
 
         label = (label > 0).astype(float)
 
-        img_tensor = torch.Tensor(img)
-        label_tensor = torch.Tensor(label)
+        img, label = self.augmenter(img, label)
 
-        seed1 = np.random.randint(2**32 - 1) # TODO should be sys.maxint for python2
-        seed2 = np.random.randint(2**32 - 1) # TODO should be sys.maxint for python2
-
-        random.seed(seed1)
-        torch.manual_seed(seed2)
-        img_tensor = self.img_transforms(img_tensor)
-
-        random.seed(seed1)
-        torch.manual_seed(seed2)
-        label_tensor = self.label_transforms(label_tensor)
+        img_tensor = torch.Tensor(img).permute((2, 0, 1))
+        label_tensor = torch.Tensor(label).permute((2, 0, 1))
 
         return img_tensor, label_tensor
 

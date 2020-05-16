@@ -15,7 +15,7 @@ class Augmenter():
     Objects can be called on torch.Tensor PIL.Image.Image and ndarray and converts
     if necessary.
     '''
-    def __init__(self, list_of_transforms=[], p=.5, target_type="mask"):
+    def __init__(self, list_of_transforms=[], p=.5, target_type="mask"): #TODO: target_type=None?
         '''
         Instantiate albumentations augmenter.
 
