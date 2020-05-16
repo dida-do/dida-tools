@@ -20,7 +20,7 @@ class UnetBulk(nn.Module):
     Recursively build a U-NET
     """
     def __init__(self, ch_in: int=32, n_recursions: int=4, dropout: Optional[float]=None,
-                 use_shuffle :bool=True, activ: nn.Module=nn.ELU, use_pooling: bool=False):
+                 use_shuffle: bool=True, activ: nn.Module=nn.ELU, use_pooling: bool=False):
         super().__init__()
         """
         :param ch_in: number of input Channels
@@ -71,7 +71,7 @@ class UNET(nn.Module):
     Wrapper for UNET_Bulk together with input and output layers
     """
     def __init__(self, ch_in: int=12, ch_out: int=2, bulk_ch: int=32, n_recursions: int=4,
-                 use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU):
+            use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU, use_pooling: bool=True):
         super().__init__()
         """
         :param ch_in: number of input Channels
@@ -85,7 +85,7 @@ class UNET(nn.Module):
 
         self.bulk = UnetBulk(ch_in=bulk_ch, n_recursions=n_recursions,
                              dropout=dropout, use_shuffle=use_shuffle,
-                             activ=activ)
+                             activ=activ, use_pooling=use_pooling)
 
         self.out = nn.Conv2d(2 * bulk_ch, ch_out, (1, 1))
 
