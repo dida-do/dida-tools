@@ -1,6 +1,5 @@
 name: dl-repo
 channels:
-  - conda-forge
   - anaconda
 dependencies:
   - python>=3.6
@@ -12,5 +11,4 @@ dependencies:
   - pytorch::torchvision>=0.3.0
   - scikit-image=>0.14.2
   - pytorch::torchvision
-  - cudatoolkit=9.0
-  - albumentations>=0.4.5
+  - cudatoolkit>=9.0
