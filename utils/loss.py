@@ -134,7 +134,7 @@ def recall(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.T
 
     return tp.sum() / (target.sum() + eps)
 
-def f1(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+def f1(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
     '''
     Function to calculate the f1 score.
 
@@ -147,7 +147,7 @@ def f1(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     p = precision(pred, target)
     r = recall(pred, target)
 
-    return (2 * p * r) / (p + r)
+    return (2 * p * r) / (p + r + eps)
 
 def masked_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
                             smooth: float=1., eps: float=1e-6) -> torch.Tensor:
