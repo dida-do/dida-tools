@@ -44,6 +44,13 @@ class NpyDataset(torch.utils.data.Dataset):
         return len(self.x_list)
 
     def __getitem__(self, idx: int) -> tuple:
+        """
+        Load images from disk and perform augmentations.
+
+        :param idx: (int) index of the file to load
+
+        :rtype (torch.Tensor, torch.Tensor) image and segmentation mask
+        """
         img_name = os.path.join(self.x_dir, self.x_list[idx])
         img = np.load(img_name)
 
@@ -54,6 +61,7 @@ class NpyDataset(torch.utils.data.Dataset):
 
         img, label = self.augmenter(img, label)
 
+        # instantiate torch.Tensors and change to channels-first ordering
         img_tensor = torch.Tensor(img).permute((2, 0, 1))
         label_tensor = torch.Tensor(label).permute((2, 0, 1))
 
