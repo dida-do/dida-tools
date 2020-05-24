@@ -56,7 +56,7 @@ train_config = {
 }
 
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
-          training_config: dict=train_config, global_config: dict=global_config):
+          training_config: dict = train_config, global_config: dict = global_config):
     """
     Template training routine. Takes a training and a test dataset wrapped
     as torch.utils.data.Dataset type and two corresponding generic
@@ -64,7 +64,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     Returns the fitted fastai.train.Learner object which can be
     used to assess the resulting metrics and error curves etc.
     """
-    
+
     for path in global_config.values():
         create_dirs(path)
 
@@ -87,7 +87,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     # model name & paths
     name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
-     
+
     if train_config["MIXED_PRECISION"]:
         learner.to_fp16()
 
@@ -97,7 +97,9 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
     cbs = [
         SaveModelCallback(learner),
-        LearnerTensorboardWriter(learner, Path(os.path.join(global_config["LOG_DIR"]), "tensorboardx") ,name),
+        LearnerTensorboardWriter(learner,
+                                 Path(os.path.join(global_config["LOG_DIR"]), "tensorboardx")
+                                 , name),
         TerminateOnNaNCallback()
     ]
 
@@ -111,11 +113,11 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     except KeyboardInterrupt:
         learner.save(modelpath)
         raise KeyboardInterrupt
-    
+
     learner.save(modelpath)
     val_loss = min(learner.recorder.val_losses)
     val_metrics = learner.recorder.metrics
-    
+
     # log using the logging tool
     logger = log.Log(train_config, run_name=train_config['SESSION_NAME'])
     logger.log_metric('Validation Loss', val_loss)
