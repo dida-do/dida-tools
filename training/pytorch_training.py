@@ -10,8 +10,6 @@ over the epochs. Additional test metric support can easily be incorporated.
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
-from tqdm import tqdm
 
 from tensorboardX import SummaryWriter
 
@@ -62,7 +60,7 @@ train_config = {
 }
 
 def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.data.Dataset,
-          training_config: dict=train_config, global_config: dict=global_config):
+          training_config: dict = train_config, global_config: dict = global_config):
     """
     Template pytorch training routine. Takes a training and a test dataset wrapped
     as torch.utils.data.Dataset type and two corresponding generic
@@ -73,26 +71,30 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
         create_dirs(path)
 
     # wrap datasets with Dataloader classes
-    train_loader = torch.utils.data.DataLoader(train_dataset, **training_config["DATA_LOADER_CONFIG"])
-    test_loader = torch.utils.data.DataLoader(test_dataset, **training_config["DATA_LOADER_CONFIG"])
+    train_loader = torch.utils.data.DataLoader(train_dataset,
+                                               **training_config["DATA_LOADER_CONFIG"])
+    test_loader = torch.utils.data.DataLoader(test_dataset,
+                                              **training_config["DATA_LOADER_CONFIG"])
 
     # model name & paths
-    name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
+    name = "_".join([train_config["DATE"],
+                     train_config["SESSION_NAME"]])
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
 
     # instantiate model and optimizer
     model = training_config["MODEL"](**training_config["MODEL_CONFIG"]).to(training_config["DEVICE"])
-    optimizer = training_config["OPTIMIZER"](model.parameters(), **training_config["OPTIMIZER_CONFIG"])
+    optimizer = training_config["OPTIMIZER"](model.parameters(),
+                                             **training_config["OPTIMIZER_CONFIG"])
 
     # tensorboardX setup
     log_dir = os.path.join(global_config["LOG_DIR"], "tensorboardx", name)
     create_dirs(log_dir)
     writer = SummaryWriter(logdir=log_dir)
-    
+
     test_losses = []
 
     with log.Log(train_config=train_config, run_name=train_config['SESSION_NAME']) as logger:
-    
+
         try:
             for epoch in range(training_config["EPOCHS"]):
                 batch = 0
@@ -108,19 +110,19 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
                     loss = training_config["LOSS"](output, y)
                     loss.backward()
                     optimizer.step()
-                    
+
                     logger.log_metric('Training Loss', loss)
 
                     print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
-                      "".format(epoch, 
-                                batch, 
-                                int(len(train_dataset) / training_config["DATA_LOADER_CONFIG"]["batch_size"]),
-                                loss, 
-                                end=""))
+                          "".format(epoch,
+                                    batch,
+                                    int(len(train_dataset) / training_config["DATA_LOADER_CONFIG"]["batch_size"]),
+                                    loss,
+                                    end=""))
                     batch += 1
 
                 # evaluation loop
-                # NOTE: evaluation is performed w.r.t. model loss on chosen device, 
+                # NOTE: evaluation is performed w.r.t. model loss on chosen device,
                 # all outputs are stored for global verification dataset loss
                 with torch.no_grad():
                     y_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
@@ -138,7 +140,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
                 loss = training_config["LOSS"](y_hat_vec, y_vec)
                 test_losses.append(loss)
                 print(test_losses)
-                
+
                 #logging using the logging tool
                 logger.log_metric('Evaluation Loss', loss)
 
