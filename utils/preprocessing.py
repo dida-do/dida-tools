@@ -37,7 +37,9 @@ def augmentation(p: float=0.5) -> Callable:
 def get_preprocess(n_ch: int=3,
                    base_mean: Iterable[float]=(0.485, 0.456, 0.406),
                    base_std: Iterable[float]=(0.229, 0.224, 0.225)) -> Callable:
-    """Get a preprocessing pipeline given base normalisation values and the number of channels"""
+    """Get a preprocessing pipeline given base normalisation values and the number of channels.
+    
+    The default mean and standard deviations are for torchvision models https://pytorch.org/docs/stable/torchvision/models.html"""
     
     base_ch = len(base_mean)
     base_mean = list(base_mean)
