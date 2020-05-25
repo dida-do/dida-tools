@@ -21,7 +21,7 @@ config = {
         "lr" : 10e-3
     },
     "DEVICE" : "cpu"
-}   
+}
 
 class TestPrediction(unittest.TestCase):
 
@@ -63,4 +63,3 @@ class TestTraining(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-    
