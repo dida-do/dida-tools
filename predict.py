@@ -18,8 +18,8 @@ predict_config = {
     "SUFFIX": "",
     "MODEL": UNET,
     "MODEL_CONFIG": {
-        "ch_in": 4,
-        "ch_out": 1,
+        "ch_in": 12,
+        "ch_out": 2,
         "n_recursions": 5,
         "use_shuffle": True,
         "activ": torch.nn.ELU },
