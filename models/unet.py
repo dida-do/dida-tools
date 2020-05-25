@@ -1,6 +1,3 @@
-# TODO suppress pylint for Exactly one space required around keyword argument assignment
-#pylint: disable=C0326
-
 """
 U-NET Architecture. We recursively build modules that downsample and upsample
 before concatenating with the copied input. Options exist for specifying the
@@ -18,8 +15,8 @@ class UnetBulk(nn.Module):
     """
     Recursively build a U-NET
     """
-    def __init__(self, ch_in: int=32, n_recursions: int=4, dropout: Optional[float]=None,
-                 use_shuffle: bool=True, activ: nn.Module=nn.ELU, use_pooling: bool=False):
+    def __init__(self, ch_in: int = 32, n_recursions: int = 4, dropout: Optional[float] = None,
+                 use_shuffle: bool = True, activ: nn.Module = nn.ELU, use_pooling: bool = False):
         """
         :param ch_in: number of input Channels
         :param n_recursions: number of times to repeat
@@ -67,9 +64,9 @@ class UNET(nn.Module):
     """
     Wrapper for UNET_Bulk together with input and output layers
     """
-    def __init__(self, ch_in: int=12, ch_out: int=2, bulk_ch: int=32, n_recursions: int=4,
-                 use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU,
-                 use_pooling: bool=True):
+    def __init__(self, ch_in: int = 12, ch_out: int = 2, bulk_ch: int = 32, n_recursions: int = 4,
+                 use_shuffle: bool = True, dropout: Optional[float] = None,
+                 activ: nn.Module = nn.ELU, use_pooling: bool = True):
         """
         :param ch_in: number of input Channels
         :param ch_out: number of output Channels
