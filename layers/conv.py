@@ -11,8 +11,8 @@ class ConvLayer(nn.Module):
     Standard Convolutional Layer.
     Combining convolution, activation and batchnorm
     """
-    def __init__(self, ch_in: int, ch_out: int, pad: int=2,
-                 ks: int=5, stride: int=1, dropout: Optional[float]=None,
+    def __init__(self, ch_in: int, ch_out: int, pad: int=1,
+                 ks: int=3, stride: int=1, dropout: Optional[float]=None,
                  activ: nn.Module=nn.ELU):
         """
         :param ch_in: number of input Channels
