@@ -13,3 +13,4 @@ dependencies:
   - scikit-image=>0.14.2
   - pytorch::torchvision
   - cudatoolkit=9.0
+  - mlflow>=1.8.0
