@@ -11,14 +11,16 @@ class Augmenter():
     Image augmentation class to integrate albumentations. Takes list of albumentations
     transforms, probability of applying any augmentation and the type of the target.
     Objects can be called on torch.Tensor, PIL.Image.Image and ndarray and converts
-    if necessary.
+    if necessary. With probability p the list of augmentations is applied, while each
+    augmentation in the list is applied with a probability defined at instantiation of
+    the respective augmentation object.
     """
-    def __init__(self, list_of_transforms=[], p=.5, target_type="mask"): #TODO: target_type=None?
+    def __init__(self, list_of_transforms=[], p=1., target_type="mask"):
         """
         Instantiate albumentations augmenter.
 
         :param list_of_transforms: (list) list of albumentations objects to apply
-        :param p: (float) probability of applying at least one augmentations from list
+        :param p: (float) probability of applying augmentations list
         :param target_type: (str) type of target format. Possible values are "mask",
                                   "bbox" and "keypoints"
         """
