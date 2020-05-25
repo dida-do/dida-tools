@@ -10,14 +10,14 @@ from albumentations import HorizontalFlip, VerticalFlip, Rotate
 from utils.data.augmenter import Augmenter
 
 class NpyDataset(torch.utils.data.Dataset):
-    '''
+    """
     A supervised learning dataset class to handle serialised
     numpy data, for example images.
 
     Data consists of float `.npy` files of fixed shape.
     Observations and labels are given by different folders
     containing files with same names.
-    '''
+    """
     def __init__(self, x_dir, y_dir):
         """
         Instantiate .npy file dataset.
@@ -69,12 +69,12 @@ class NpyDataset(torch.utils.data.Dataset):
 
 
 class NpyPredictionDataset(torch.utils.data.Dataset):
-    '''
+    """
     A dataset class to handle prediction on serialised numpy data,
     for example images.
 
     Data consists of float `.npy` files of fixed shape.
-    '''
+    """
     def __init__(self, files):
         """
         Instantiate .npy file dataset.
