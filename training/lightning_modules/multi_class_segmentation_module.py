@@ -6,6 +6,7 @@ from utils.preprocessing import get_preprocess, augmentation
 from utils.loss import multi_class_smooth_dice_loss, multi_class_dice_ce_sum
 from utils.cmap import GeoTIFFColourMap
 from utils.objectise import objectise
+from utils.torchutils import visualise
 
 import os
 import torch
@@ -85,7 +86,7 @@ class MultiClassSegmentationModule(BaseModule):
             x = x[:min(32, len(x))]
             y = y[:min(32, len(x))]
         
-            grid = torchvision.utils.make_grid(self._visualise(x))
+            grid = torchvision.utils.make_grid(visualise(x))
             self.logger.experiment.add_image(f'initial_imgs', grid, 0)
             
             if self.cmap is None:
