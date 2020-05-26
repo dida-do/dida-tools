@@ -118,21 +118,6 @@ class BaseModule(pl.LightningModule):
         self.model.load_state_dict(model_dict)
     
     @staticmethod
-    def _visualise(x):
-        """Slice and normalise a batch of images for visualisation"""
-        assert len(x.shape) == 4
-        if x.shape[1] == 2: # Sentinel 1
-            return x[:, [0], :, :]
-        elif x.shape[1] == 13: # Sentinel 2
-            x = x[:, [3, 2, 1], :, :]
-            x = (x - x.min()) / (x.max() - x.min() + 1e-5)
-            return x**0.5 # gamma correction
-        elif x.shape[1] > 3:
-            return x[:,:3, :, :]
-        else:
-            return x
-    
-    @staticmethod
     def __add_base_args(parent_parser):
         """Make sure to call in add_model_specific_args"""
         parser = ArgumentParser(parents=[parent_parser])

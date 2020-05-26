@@ -5,6 +5,7 @@ from utils.data.datasets import SegmentationDataset
 from utils.preprocessing import get_preprocess, augmentation
 from utils.loss import smooth_dice_loss, dice_bce_sum
 from utils.objectise import objectise
+from utils.torchutils import visualise
 
 import os
 import torch
@@ -82,7 +83,7 @@ class BinarySegmentationModule(BaseModule):
             x = x[:min(32, len(x))]
             y = y[:min(32, len(x))]
         
-            grid = torchvision.utils.make_grid(self._visualise(x))
+            grid = torchvision.utils.make_grid(visualise(x))
             self.logger.experiment.add_image(f'initial_imgs', grid, 0)
             
             for ch in range(y.shape[1]):
