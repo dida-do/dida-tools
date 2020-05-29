@@ -4,7 +4,7 @@ Module to run unit tests on loss functions and metrics
 import unittest
 import numpy as np
 import torch
-from utils.loss import masked_precision, masked_recall, masked_f1
+from utils.loss import masked_precision, masked_recall, masked_f1, masked_smooth_dice_loss
 
 class TestMaskedLoss(unittest.TestCase):
     """
@@ -74,6 +74,21 @@ class TestMaskedF1Score(TestMaskedLoss):
         small_loss = masked_f1(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
         medium_loss = masked_f1(self.seg_mask_logits[:, 1:], self.half_inverted_logits)
         large_loss = masked_f1(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
+        assert large_loss > medium_loss > small_loss
+
+class TestSmoothDiceLoss(TestMaskedLoss):
+    def test_worstcase(self):
+        loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
+        assert np.isclose(loss.item(), 1., atol=1e-2)
+
+    def test_bestcase(self):
+        loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
+        assert np.isclose(loss.item(), 0., atol=1e-2)
+
+    def test_order(self):
+        small_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
+        medium_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.half_inverted_logits)
+        large_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
         assert large_loss > medium_loss > small_loss
 
 if __name__ == "__main__":
