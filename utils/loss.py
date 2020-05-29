@@ -199,7 +199,7 @@ def masked_recall(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> 
 
     return tp.sum() / (target.sum() + eps)
 
-def masked_f1(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+def masked_f1(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
     """
     Function to calculate the masked f1 score. Like f1 score,
     but with usability mask in channel in the first channel
@@ -214,4 +214,4 @@ def masked_f1(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     p = masked_precision(pred, target)
     r = masked_recall(pred, target)
 
-    return (2 * p * r) / (p + r)
+    return (2 * p * r) / (p + r + eps)
