@@ -166,6 +166,8 @@ def masked_precision(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) 
     """
 
     mask = target[:, 0].float()
+    mask = mask[:, None]
+
     pred = mask*(pred > 0).float()
     target = mask*(target[:, 1:] > 0).float()
 
@@ -188,6 +190,8 @@ def masked_recall(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> 
     """
 
     mask = target[:, 0].float()
+    mask = mask[:, None]
+
     pred = mask*(pred > 0).float()
     target = mask*(target[:, 1:] > 0).float()
 
