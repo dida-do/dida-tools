@@ -141,6 +141,8 @@ def masked_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
     """
 
     mask = target[:, 0].float()
+    mask = mask[:, None]
+
     pred = torch.sigmoid(pred)
     target = (target[:, 1:] > 0).float()
 
