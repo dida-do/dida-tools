@@ -24,14 +24,16 @@ from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
 import utils.logging.log as log
 
+import torchvision.models as models
+
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "SESSION_NAME": "training-run",
     "ROUTINE_NAME": sys.modules[__name__],
-    "MODEL": UNET,
+    "MODEL": models.resnet18(),
     "MODEL_CONFIG": {
-        "ch_in": 12,
-        "ch_out": 2,
+        "ch_in": 1,
+        "ch_out": 10,
         "n_recursions": 5,
         "dropout": .2,
         "use_shuffle": True,
@@ -48,7 +50,7 @@ train_config = {
         "lr": 1e-3
     },
     "EPOCHS":  100,
-    "LOSS": smooth_dice_loss,
+    "LOSS": torch.nn.CrossEntropyLoss(),
     "METRICS": {
         "f1": f1,
         "precision": precision,
@@ -82,9 +84,13 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
 
     # instantiate model and optimizer
-    model = training_config["MODEL"](**training_config["MODEL_CONFIG"]).to(training_config["DEVICE"])
-    optimizer = training_config["OPTIMIZER"](model.parameters(),
-                                             **training_config["OPTIMIZER_CONFIG"])
+    model = training_config["MODEL"]
+    #make the input layer 1 dimensional, because MNIST is colorless
+    model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+    model.fc = torch.nn.Linear(in_features=512, out_features=10, bias=True)
+    model = model.to(training_config["DEVICE"])
+    
+    optimizer = training_config["OPTIMIZER"](model.parameters(), **training_config["OPTIMIZER_CONFIG"])
 
     # tensorboardX setup
     log_dir = os.path.join(global_config["LOG_DIR"], "tensorboardx", name)
@@ -106,54 +112,19 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
                     optimizer.zero_grad()
                     output = model(x)
+                    y_vec = y #torch.cat([y_vec, y])
+                    y_hat_vec = output #torch.cat([y_hat_vec, output])
 
-                    loss = training_config["LOSS"](output, y)
-                    loss.backward()
-                    optimizer.step()
+            loss = training_config["LOSS"](y_hat_vec, y_vec)
+            test_losses.append(loss)
+            print(test_losses)
 
-                    logger.log_metric('Training Loss', loss)
+            # best model checkpointing
+            if torch.all(loss <= torch.stack(test_losses, dim=0)):
+                torch.save(model.state_dict(), modelpath + "bestmodel" + ".pth")
+                print("Best model saved to {}".format("bestmodel" + ".pth"))
 
-                    print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
-                          "".format(epoch,
-                                    batch,
-                                    int(len(train_dataset) / training_config["DATA_LOADER_CONFIG"]["batch_size"]),
-                                    loss,
-                                    end=""))
-                    batch += 1
-
-                # evaluation loop
-                # NOTE: evaluation is performed w.r.t. model loss on chosen device,
-                # all outputs are stored for global verification dataset loss
-                with torch.no_grad():
-                    y_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
-                    y_hat_vec = torch.tensor([]).to(training_config["DEVICE"], non_blocking=True)
-                    for x, y in test_loader:
-                        x = x.to(training_config["DEVICE"], non_blocking=True)
-                        y = y.to(training_config["DEVICE"], non_blocking=True)
-
-                        model.eval()
-                        output = model(x)
-                        y_vec = torch.cat([y_vec, y])
-                        y_hat_vec = torch.cat([y_hat_vec, output])
-
-                # TODO tensorboard loss logging
-                loss = training_config["LOSS"](y_hat_vec, y_vec)
-                test_losses.append(loss)
-                print(test_losses)
-
-                #logging using the logging tool
-                logger.log_metric('Evaluation Loss', loss)
-
-                # best model checkpointing
-                if torch.all(loss <= torch.stack(test_losses, dim=0)):
-                    torch.save(model.state_dict(), modelpath + "bestmodel" + ".pth")
-                    print("Best model saved to {}".format("bestmodel" + ".pth"))
-
-                # epoch checkpointing
-                torch.save(model.state_dict(), modelpath + ".pth")
-                print("Checkpoint saved to {}".format(modelpath + ".pth"))
-
-        except KeyboardInterrupt:
+            # epoch checkpointing
             torch.save(model.state_dict(), modelpath + ".pth")
             print("Model saved to {}".format(modelpath + ".pth"))
             raise KeyboardInterrupt
