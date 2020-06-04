@@ -44,7 +44,7 @@ class TestMaskedPrecision(TestMaskedLoss):
 
     def test_bestcase(self):
         loss = masked_precision(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
-        assert np.isclose(loss, 1., atol=1e-6)
+        assert np.isclose(loss.item(), 1., atol=1e-6)
 
     def test_order(self):
         small_loss = masked_precision(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
@@ -59,7 +59,7 @@ class TestMaskedRecall(TestMaskedLoss):
 
     def test_bestcase(self):
         loss = masked_recall(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
-        assert np.isclose(loss, 1., atol=1e-6)
+        assert np.isclose(loss.item(), 1., atol=1e-6)
 
     def test_order(self):
         small_loss = masked_recall(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
@@ -74,7 +74,7 @@ class TestMaskedF1Score(TestMaskedLoss):
 
     def test_bestcase(self):
         loss = masked_f1(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
-        assert np.isclose(loss, 1., atol=1e-6)
+        assert np.isclose(loss.item(), 1., atol=1e-6)
 
     def test_order(self):
         small_loss = masked_f1(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
