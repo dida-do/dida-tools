@@ -1,5 +1,5 @@
 """
-Module to run unit tests on loss functions and metrics
+Module to run unit tests on loss functions and metrics when usability mask is available
 """
 import unittest
 import numpy as np
@@ -30,6 +30,12 @@ class TestMaskedLoss(unittest.TestCase):
         self.seg_mask_logits[:, 0] = usability_mask
         self.inverted_seg_mask_logits[:, 0] = usability_mask
         self.half_inverted_logits[:, 0] = usability_mask
+
+        # move tensors to gpu if available
+        if torch.cuda.is_available():
+            self.seg_mask_logits = self.seg_mask_logits.cuda()
+            self.inverted_seg_mask_logits = self.inverted_seg_mask_logits.cuda()
+            self.half_inverted_logits = self.half_inverted_logits.cuda()
 
 class TestMaskedPrecision(TestMaskedLoss):
     def test_worstcase(self):
