@@ -26,11 +26,13 @@ import utils.logging.log as log
 
 import torchvision.models as models
 
+import torchvision.models as models
+
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "SESSION_NAME": "training-run",
     "ROUTINE_NAME": sys.modules[__name__],
-    "MODEL": UNET,
+    "MODEL": models.resnet18(),
     "MODEL_CONFIG": {
         "ch_in": 1,
         "ch_out": 10,
@@ -84,9 +86,13 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
 
     # instantiate model and optimizer
-    model = training_config["MODEL"].to(training_config["DEVICE"])
-    optimizer = training_config["OPTIMIZER"](model.parameters(),
-                                             **training_config["OPTIMIZER_CONFIG"])
+    model = training_config["MODEL"]
+    #make the input layer 1 dimensional, because MNIST is colorless
+    model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+    model.fc = torch.nn.Linear(in_features=512, out_features=10, bias=True)
+    model = model.to(training_config["DEVICE"])
+    
+    optimizer = training_config["OPTIMIZER"](model.parameters(), **training_config["OPTIMIZER_CONFIG"])
 
     # tensorboardX setup
     log_dir = os.path.join(global_config["LOG_DIR"], "tensorboardx", name)
