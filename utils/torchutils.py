@@ -74,3 +74,21 @@ def assert_lowerbound(tensor, val):
 def assert_nonzero(tensor):
     assert (tensor != 0).all()
     
+def set_module_trainable(module: nn.Module, mode: bool) -> None:
+    """Freeze or unfreeze weights"""
+    for param in module.parameters():
+        param.requires_grad = mode
+    
+def visualise(x):
+    """Slice and normalise a batch of images for visualisation"""
+    assert len(x.shape) == 4
+    if x.shape[1] == 2: # Sentinel 1
+        return x[:, [0], :, :]
+    elif x.shape[1] == 13: # Sentinel 2
+        x = x[:, [3, 2, 1], :, :]
+        x = (x - x.min()) / (x.max() - x.min() + 1e-5)
+        return x**0.5 # gamma correction
+    elif x.shape[1] > 3:
+        return x[:,:3, :, :]
+    else:
+        return x
