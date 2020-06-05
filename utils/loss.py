@@ -1,6 +1,3 @@
-# TODO suppress pylint for Exactly one space required around keyword argument assignment
-#pylint: disable=C0326
-
 """
 This module contains generic pyTorch losses for training. It expects
 channels-first ordering (sample, c, h, w) for any number of channels.
@@ -74,21 +71,16 @@ def smooth_dice_beta_loss(pred: torch.Tensor, target: torch.Tensor,
 
     return 1 - (((1+beta**2)*tp + smooth) / ((1+beta**2)*tp + beta**2*fn + fp + smooth + eps))
 
-def dice_bce_sum(pred: torch.Tensor,
-                 target: torch.Tensor,
-                 weight: float=0.5,
-                 smooth: float=1.,
-                 eps: float=1e-6):
+def dice_bce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
+                 smooth: float=1., eps: float=1e-6):
     """Weighted sum of smooth dice loss and binary cross entropy.
 
     `weight` is the relative weight between the two loss functions."""
 
-    return weight * smooth_dice_loss(pred, target, smooth, eps) + (1 - weight) * F.binary_cross_entropy_with_logits(pred, target)
+    return weight * smooth_dice_loss(pred, target, smooth, eps) + (1 - weight) * F.binary_cross_entropy_with_logits(pred, torch.sigmoid(target))
 
-def multi_class_smooth_dice_loss(pred: torch.Tensor,
-                                 target: torch.Tensor,
-                                 smooth: float=1.,
-                                 eps: float=1e-6):
+def multi_class_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
+                                 smooth: float=1., eps: float=1e-6):
     """Smooth Dice loss for multi class classification."""
 
     prob = F.softmax(pred, dim=1)
@@ -105,11 +97,8 @@ def multi_class_smooth_dice_loss(pred: torch.Tensor,
 
     return 1. - ((2. * intersect + smooth) / (cardinality + smooth + eps)).mean()
 
-def multi_class_dice_ce_sum(pred: torch.Tensor,
-                            target: torch.Tensor,
-                            weight: float=0.5,
-                            smooth: float=1.,
-                            eps: float=1e-6):
+def multi_class_dice_ce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
+                            smooth: float=1., eps: float=1e-6):
     """Sum of cross entropy and dice loss for multi class case"""
 
     target = target.long()
