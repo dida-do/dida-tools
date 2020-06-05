@@ -18,8 +18,8 @@ class TestLoss(unittest.TestCase):
         base = (torch.randn(16, 4, 256, 256) > 0.).float()
 
         # assume logits as segmentation mask
-        self.seg_mask_logits = 10.*base - 5.
-        self.inverted_seg_mask_logits = -1*self.seg_mask_logits
+        self.seg_mask_logits = 10. * base - 5.
+        self.inverted_seg_mask_logits = -1 * self.seg_mask_logits
         self.half_inverted_logits = self.seg_mask_logits.clone()
         self.half_inverted_logits[:, :2] = self.inverted_seg_mask_logits[:, :2]
 
