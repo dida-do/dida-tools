@@ -54,10 +54,10 @@ def train(X_train, X_test, y_train, y_test, train_config: dict=train_config,
 
     log_content = train_config.copy()
     log_content["VAL_LOSS"] = train_config["LOSS"](y_test, predictions)
-    log_content["VAL_METRICS"] = []
+    log_content["VAL_METRICS"] = {}
 
-    for metric in train_config["METRICS"].values():
-        log_content["VAL_METRICS"].append(metric(y_test, predictions))
+    for key, metric in train_config["METRICS"].items():
+        log_content["VAL_METRICS"][key] = metric(y_test, predictions)
 
     log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
     write_log(log_path, log_content)
