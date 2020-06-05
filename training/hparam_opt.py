@@ -32,13 +32,21 @@ def update_config(config, **kwargs):
 
 @dataclass
 class TrainingContainer:
-    """Callable class for training a network within nevergrad"""
+    """Callable class for training a network within nevergrad
+    
+    :param base_config: Base configuration for training
+    :param train_dataset: Training dataset for non pytorch_lightning models
+    :param test_dataset: Test dataset for non pytorch_lightning models
+    :param global_config: Global training config
+    :param backend: Which backend to use
+    :param mode: Whether to mnimise of maximise the target metric"""
+    
     
     base_config: dict
     train_dataset: torch.utils.data.Dataset
     test_dataset: torch.utils.data.Dataset
     global_config: Optional[dict]=None
-    backend: str="lighting"
+    backend: str="fastai"
     mode: str="max"
         
     def __post__init__(self):
@@ -55,13 +63,13 @@ class TrainingContainer:
         
         if self.backend == "fastai":
             _, log_content, _ = fastai_train(self.train_dataset, self.test_dataset, temp_config, self.global_config)
-            return self.coef*log_content["VAL_LOSS"]
+            return self.coef * log_content["VAL_LOSS"]
         
         elif self.backend == "ignite":
-            return self.coef*ignite_train(self.train_dataset, self.test_dataset, temp_config, self.global_config)
+            return self.coef * ignite_train(self.train_dataset, self.test_dataset, temp_config, self.global_config)
         
         elif self.backend == "pytorch":
-            return self.coef*pytorch_train(self.train_dataset, self.test_dataset, temp_config, self.global_config)
+            return self.coef * pytorch_train(self.train_dataset, self.test_dataset, temp_config, self.global_config)
         
         else:
             raise NotImplementedError(f"Backend {self.backend} not implemented. Use the specific class for lightning.")
