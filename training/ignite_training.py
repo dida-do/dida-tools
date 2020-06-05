@@ -163,3 +163,5 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     write_log(log_path, log_content)
 
     logger.end_run()
+    
+    return evaluator.state.metrics["training/avg_loss"]
