@@ -25,7 +25,7 @@ class UnetBulk(nn.Module):
         :param use_pooling: whether to use pooling or strides for downsampling
         """
         super().__init__()
-        layers = [ConvLayer(ch_in, ch_in, stride=2-int(use_pooling), dropout=dropout, activ=activ),
+        layers = [ConvLayer(ch_in, ch_in, stride=2 - int(use_pooling), dropout=dropout, activ=activ),
                   ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
                   ConvLayer(ch_in, 2 * ch_in, dropout=dropout, activ=activ)]
 
