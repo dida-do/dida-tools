@@ -1,6 +1,7 @@
 import os
 import sys
 from datetime import datetime
+import joblib
 
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, multilabel_confusion_matrix
@@ -31,11 +32,18 @@ def train(X_train, X_test, y_train, y_test, train_config: dict=train_config,
     for path in global_config:
         create_dirs(path)
 
+    # model name and path
+    name = "_".join([train_config["DATE"], train_config["SESSION_NAME"]])
+    model_path = os.path.join(global_config["WEIGHT_DIR"], name)
+
     # instantiate model
     model = train_config["MODEL"](**train_config["MODEL_CONFIG"])
 
     # fit to training data
     model.fit(X_train, y_train)
+
+    # dump model to disk
+    joblib.dump(model, model_path+".joblib")
 
     # log metrics
     predictions = model.predict(X_test)
