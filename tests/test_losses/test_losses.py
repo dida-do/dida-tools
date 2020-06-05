@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from utils.loss import precision, recall, f1, smooth_dice_loss, smooth_dice_beta_loss, dice_bce_sum
 
-class TestLoss(unittest.TestCase):
+class TestMeasure(unittest.TestCase):
     """
     Base class for testing losses. It provides dummy images with varying similarity,
     such that various degrees of the loss functions / metrics can be emulated.
@@ -29,95 +29,123 @@ class TestLoss(unittest.TestCase):
             self.negative_seg_mask_logits = self.negative_seg_mask_logits.cuda()
             self.half_negative_logits = self.half_negative_logits.cuda()
 
-class TestPrecision(TestLoss):
-    def test_worstcase(self):
-        loss = precision(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert loss == 0.
+    def _test_worstcase(self):
+        loss = self.f(self.seg_mask_logits, self.negative_seg_mask_logits)
+        assert np.isclose(loss.item(), self.worstcase_target, atol=self.worstcase_tol)
 
-    def test_bestcase(self):
-        loss = precision(self.seg_mask_logits, self.seg_mask_logits)
-        assert np.isclose(loss.item(), 1., atol=1e-6)
+    def _test_bestcase(self):
+        loss = self.f(self.seg_mask_logits, self.seg_mask_logits)
+        assert np.isclose(loss.item(), self.bestcase_target, atol=self.bestcase_tol)
 
-    def test_order(self):
-        small_loss = precision(self.seg_mask_logits, self.negative_seg_mask_logits)
-        medium_loss = precision(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = precision(self.seg_mask_logits, self.seg_mask_logits)
+class TestMetric(TestMeasure):
+    def _test_order(self):
+        small_loss = self.f(self.seg_mask_logits, self.negative_seg_mask_logits)
+        medium_loss = self.f(self.seg_mask_logits, self.half_negative_logits)
+        large_loss = self.f(self.seg_mask_logits, self.seg_mask_logits)
         assert large_loss > medium_loss > small_loss
 
-class TestRecall(TestLoss):
-    def test_worstcase(self):
-        loss = recall(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert loss == 0.
-
-    def test_bestcase(self):
-        loss = recall(self.seg_mask_logits, self.seg_mask_logits)
-        assert np.isclose(loss.item(), 1., atol=1e-6)
-
-    def test_order(self):
-        small_loss = recall(self.seg_mask_logits, self.negative_seg_mask_logits)
-        medium_loss = recall(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = recall(self.seg_mask_logits, self.seg_mask_logits)
+class TestLoss(TestMeasure):
+    def _test_order(self):
+        small_loss = self.f(self.seg_mask_logits, self.seg_mask_logits)
+        medium_loss = self.f(self.seg_mask_logits, self.half_negative_logits)
+        large_loss = self.f(self.seg_mask_logits, self.negative_seg_mask_logits)
         assert large_loss > medium_loss > small_loss
 
-class TestF1Score(TestLoss):
+class TestPrecision(TestMetric):
+    f = staticmethod(precision)
+    bestcase_target = 1.
+    bestcase_tol = 1e-6
+    worstcase_target = 0.
+    worstcase_tol = 1e-6
+
     def test_worstcase(self):
-        loss = f1(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert loss == 0.
+        self._test_worstcase()
 
     def test_bestcase(self):
-        loss = f1(self.seg_mask_logits, self.seg_mask_logits)
-        assert np.isclose(loss.item(), 1., atol=1e-6)
+        self._test_bestcase()
 
     def test_order(self):
-        small_loss = f1(self.seg_mask_logits, self.negative_seg_mask_logits)
-        medium_loss = f1(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = f1(self.seg_mask_logits, self.seg_mask_logits)
-        assert large_loss > medium_loss > small_loss
+        self._test_order()
+
+class TestRecall(TestMetric):
+    f = staticmethod(recall)
+    bestcase_target = 1.
+    bestcase_tol = 1e-6
+    worstcase_target = 0.
+    worstcase_tol = 1e-6
+
+    def test_worstcase(self):
+        self._test_worstcase()
+
+    def test_bestcase(self):
+        self._test_bestcase()
+
+    def test_order(self):
+        self._test_order()
+
+class TestF1Score(TestMetric):
+    f = staticmethod(f1)
+    bestcase_target = 1.
+    bestcase_tol = 1e-6
+    worstcase_target = 0.
+    worstcase_tol = 1e-6
+
+    def test_worstcase(self):
+        self._test_worstcase()
+
+    def test_bestcase(self):
+        self._test_bestcase()
+
+    def test_order(self):
+        self._test_order()
 
 class TestSmoothDiceLoss(TestLoss):
+    f = staticmethod(smooth_dice_loss)
+    bestcase_target = 0.
+    bestcase_tol = 1e-2
+    worstcase_target = 1.
+    worstcase_tol = 1e-2
+
     def test_worstcase(self):
-        loss = smooth_dice_loss(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert np.isclose(loss.item(), 1., atol=1e-2)
+        self._test_worstcase()
 
     def test_bestcase(self):
-        loss = smooth_dice_loss(self.seg_mask_logits, self.seg_mask_logits)
-        assert np.isclose(loss.item(), 0., atol=1e-2)
+        self._test_bestcase()
 
     def test_order(self):
-        small_loss = smooth_dice_loss(self.seg_mask_logits, self.seg_mask_logits)
-        medium_loss = smooth_dice_loss(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = smooth_dice_loss(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert large_loss > medium_loss > small_loss
+        self._test_order()
 
 class TestSmoothDiceBetaLoss(TestLoss):
+    f = staticmethod(smooth_dice_beta_loss)
+    bestcase_target = 0.
+    bestcase_tol = 1e-2
+    worstcase_target = 1.
+    worstcase_tol = 1e-2
+
     def test_worstcase(self):
-        loss = smooth_dice_beta_loss(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert np.isclose(loss.item(), 1., atol=1e-2)
+        self._test_worstcase()
 
     def test_bestcase(self):
-        loss = smooth_dice_beta_loss(self.seg_mask_logits, self.seg_mask_logits)
-        assert np.isclose(loss.item(), 0., atol=1e-2)
+        self._test_bestcase()
 
     def test_order(self):
-        small_loss = smooth_dice_beta_loss(self.seg_mask_logits, self.seg_mask_logits)
-        medium_loss = smooth_dice_beta_loss(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = smooth_dice_beta_loss(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert large_loss > medium_loss > small_loss
+        self._test_order()
 
 class TestDiceBCESumLoss(TestLoss):
+    f = staticmethod(dice_bce_sum)
+    bestcase_target = 0.
+    bestcase_tol = 1e-2
+    worstcase_target = 3.
+    worstcase_tol = 1e-2
+
     def test_worstcase(self):
-        loss = dice_bce_sum(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert np.isclose(loss.item(), 3., atol=1e-2)
+        self._test_worstcase()
 
     def test_bestcase(self):
-        loss = dice_bce_sum(self.seg_mask_logits, self.seg_mask_logits)
-        assert np.isclose(loss.item(), 0., atol=1e-2)
+        self._test_bestcase()
 
     def test_order(self):
-        small_loss = dice_bce_sum(self.seg_mask_logits, self.seg_mask_logits)
-        medium_loss = dice_bce_sum(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = dice_bce_sum(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert large_loss > medium_loss > small_loss
+        self._test_order()
 
 if __name__ == "__main__":
     unittest.main()
