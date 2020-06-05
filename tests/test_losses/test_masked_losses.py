@@ -21,25 +21,25 @@ class TestMaskedLoss(unittest.TestCase):
         # assume logits as segmentation mask
         self.seg_mask_logits = torch.ones(16, 5, 256, 256)
         self.seg_mask_logits[:, 1:] = 10.*base - 5.
-        self.inverted_seg_mask_logits = -1*self.seg_mask_logits
-        self.half_inverted_logits = self.seg_mask_logits.clone()
-        self.half_inverted_logits[:, :2] = self.inverted_seg_mask_logits[:, :2]
+        self.negative_seg_mask_logits = -1*self.seg_mask_logits
+        self.half_negative_logits = self.seg_mask_logits.clone()
+        self.half_negative_logits[:, :2] = self.negative_seg_mask_logits[:, :2]
 
         # expand by usability mask
         usability_mask = (torch.randn(16, 256, 256) > 0.).float()
         self.seg_mask_logits[:, 0] = usability_mask
-        self.inverted_seg_mask_logits[:, 0] = usability_mask
-        self.half_inverted_logits[:, 0] = usability_mask
+        self.negative_seg_mask_logits[:, 0] = usability_mask
+        self.half_negative_logits[:, 0] = usability_mask
 
         # move tensors to gpu if available
         if torch.cuda.is_available():
             self.seg_mask_logits = self.seg_mask_logits.cuda()
-            self.inverted_seg_mask_logits = self.inverted_seg_mask_logits.cuda()
-            self.half_inverted_logits = self.half_inverted_logits.cuda()
+            self.negative_seg_mask_logits = self.negative_seg_mask_logits.cuda()
+            self.half_negative_logits = self.half_negative_logits.cuda()
 
 class TestMaskedPrecision(TestMaskedLoss):
     def test_worstcase(self):
-        loss = masked_precision(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
+        loss = masked_precision(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
         assert loss == 0.
 
     def test_bestcase(self):
@@ -47,14 +47,14 @@ class TestMaskedPrecision(TestMaskedLoss):
         assert np.isclose(loss.item(), 1., atol=1e-6)
 
     def test_order(self):
-        small_loss = masked_precision(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
-        medium_loss = masked_precision(self.seg_mask_logits[:, 1:], self.half_inverted_logits)
+        small_loss = masked_precision(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
+        medium_loss = masked_precision(self.seg_mask_logits[:, 1:], self.half_negative_logits)
         large_loss = masked_precision(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
         assert large_loss > medium_loss > small_loss
 
 class TestMaskedRecall(TestMaskedLoss):
     def test_worstcase(self):
-        loss = masked_recall(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
+        loss = masked_recall(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
         assert loss == 0.
 
     def test_bestcase(self):
@@ -62,14 +62,14 @@ class TestMaskedRecall(TestMaskedLoss):
         assert np.isclose(loss.item(), 1., atol=1e-6)
 
     def test_order(self):
-        small_loss = masked_recall(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
-        medium_loss = masked_recall(self.seg_mask_logits[:, 1:], self.half_inverted_logits)
+        small_loss = masked_recall(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
+        medium_loss = masked_recall(self.seg_mask_logits[:, 1:], self.half_negative_logits)
         large_loss = masked_recall(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
         assert large_loss > medium_loss > small_loss
 
 class TestMaskedF1Score(TestMaskedLoss):
     def test_worstcase(self):
-        loss = masked_f1(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
+        loss = masked_f1(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
         assert loss == 0.
 
     def test_bestcase(self):
@@ -77,14 +77,14 @@ class TestMaskedF1Score(TestMaskedLoss):
         assert np.isclose(loss.item(), 1., atol=1e-6)
 
     def test_order(self):
-        small_loss = masked_f1(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
-        medium_loss = masked_f1(self.seg_mask_logits[:, 1:], self.half_inverted_logits)
+        small_loss = masked_f1(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
+        medium_loss = masked_f1(self.seg_mask_logits[:, 1:], self.half_negative_logits)
         large_loss = masked_f1(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
         assert large_loss > medium_loss > small_loss
 
 class TestSmoothDiceLoss(TestMaskedLoss):
     def test_worstcase(self):
-        loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
+        loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
         assert np.isclose(loss.item(), 1., atol=1e-2)
 
     def test_bestcase(self):
@@ -93,8 +93,8 @@ class TestSmoothDiceLoss(TestMaskedLoss):
 
     def test_order(self):
         small_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.seg_mask_logits)
-        medium_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.half_inverted_logits)
-        large_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.inverted_seg_mask_logits)
+        medium_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.half_negative_logits)
+        large_loss = masked_smooth_dice_loss(self.seg_mask_logits[:, 1:], self.negative_seg_mask_logits)
         assert large_loss > medium_loss > small_loss
 
 if __name__ == "__main__":
