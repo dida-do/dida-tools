@@ -9,6 +9,7 @@ from sklearn.metrics import accuracy_score, multilabel_confusion_matrix
 from config.config import global_config
 from utils.path import create_dirs
 from utils.logging.csvinterface import write_log
+from utils.logging.log import Log
 
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -20,7 +21,10 @@ train_config = {
         "kernel": "rbf"
     },
     "LOSS": accuracy_score,
-    "METRICS": [accuracy_score, multilabel_confusion_matrix],
+    "METRICS": {
+        "accuracy": accuracy_score,
+        "confusion_matrix": multilabel_confusion_matrix
+    },
     "LOGFILE": "sklean_experiments.csv",
     "__COMMENT": None
 }
@@ -45,18 +49,22 @@ def train(X_train, X_test, y_train, y_test, train_config: dict=train_config,
     # dump model to disk
     joblib.dump(model, model_path+".joblib")
 
-    # log metrics
+    # log metrics to csv
     predictions = model.predict(X_test)
 
     log_content = train_config.copy()
     log_content["VAL_LOSS"] = train_config["LOSS"](y_test, predictions)
     log_content["VAL_METRICS"] = []
 
-    for metric in train_config["METRICS"]:
+    for metric in train_config["METRICS"].values():
         log_content["VAL_METRICS"].append(metric(y_test, predictions))
 
     log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
     write_log(log_path, log_content)
+
+    # log metrics to mlflow
+    logger = Log(train_config=train_config, run_name=train_config["SESSION_NAME"])
+    logger.log_metric("Test Loss", log_content["VAL_LOSS"])
 
     # return validation loss
     return log_content["VAL_LOSS"]
