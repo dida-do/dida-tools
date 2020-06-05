@@ -37,26 +37,23 @@ class TestMeasure(unittest.TestCase):
         loss = self.measure(self.seg_mask_logits, self.seg_mask_logits)
         assert np.isclose(loss.item(), self.bestcase_target, atol=self.bestcase_tol)
 
-class TestMetric(TestMeasure):
     def _test_order(self):
-        small_loss = self.measure(self.seg_mask_logits, self.negative_seg_mask_logits)
-        medium_loss = self.measure(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = self.measure(self.seg_mask_logits, self.seg_mask_logits)
-        assert large_loss > medium_loss > small_loss
+        negative = self.measure(self.seg_mask_logits, self.negative_seg_mask_logits)
+        similar = self.measure(self.seg_mask_logits, self.half_negative_logits)
+        equal = self.measure(self.seg_mask_logits, self.seg_mask_logits)
 
-class TestLoss(TestMeasure):
-    def _test_order(self):
-        small_loss = self.measure(self.seg_mask_logits, self.seg_mask_logits)
-        medium_loss = self.measure(self.seg_mask_logits, self.half_negative_logits)
-        large_loss = self.measure(self.seg_mask_logits, self.negative_seg_mask_logits)
-        assert large_loss > medium_loss > small_loss
+        if self.higher_is_better:
+            assert negative < similar < equal
+        else:
+            assert negative > similar > equal
 
-class TestPrecision(TestMetric):
+class TestPrecision(TestMeasure):
     measure = staticmethod(precision)
     bestcase_target = 1.
     bestcase_tol = 1e-6
     worstcase_target = 0.
     worstcase_tol = 1e-6
+    higher_is_better = True
 
     def test_worstcase(self):
         self._test_worstcase()
@@ -67,12 +64,13 @@ class TestPrecision(TestMetric):
     def test_order(self):
         self._test_order()
 
-class TestRecall(TestMetric):
+class TestRecall(TestMeasure):
     measure = staticmethod(recall)
     bestcase_target = 1.
     bestcase_tol = 1e-6
     worstcase_target = 0.
     worstcase_tol = 1e-6
+    higher_is_better = True
 
     def test_worstcase(self):
         self._test_worstcase()
@@ -83,12 +81,13 @@ class TestRecall(TestMetric):
     def test_order(self):
         self._test_order()
 
-class TestF1Score(TestMetric):
+class TestF1Score(TestMeasure):
     measure = staticmethod(f1)
     bestcase_target = 1.
     bestcase_tol = 1e-6
     worstcase_target = 0.
     worstcase_tol = 1e-6
+    higher_is_better = True
 
     def test_worstcase(self):
         self._test_worstcase()
@@ -99,12 +98,13 @@ class TestF1Score(TestMetric):
     def test_order(self):
         self._test_order()
 
-class TestSmoothDiceLoss(TestLoss):
+class TestSmoothDiceLoss(TestMeasure):
     measure = staticmethod(smooth_dice_loss)
     bestcase_target = 0.
     bestcase_tol = 1e-2
     worstcase_target = 1.
     worstcase_tol = 1e-2
+    higher_is_better = False
 
     def test_worstcase(self):
         self._test_worstcase()
@@ -115,12 +115,13 @@ class TestSmoothDiceLoss(TestLoss):
     def test_order(self):
         self._test_order()
 
-class TestSmoothDiceBetaLoss(TestLoss):
+class TestSmoothDiceBetaLoss(TestMeasure):
     measure = staticmethod(smooth_dice_beta_loss)
     bestcase_target = 0.
     bestcase_tol = 1e-2
     worstcase_target = 1.
     worstcase_tol = 1e-2
+    higher_is_better = False
 
     def test_worstcase(self):
         self._test_worstcase()
@@ -131,12 +132,13 @@ class TestSmoothDiceBetaLoss(TestLoss):
     def test_order(self):
         self._test_order()
 
-class TestDiceBCESumLoss(TestLoss):
+class TestDiceBCESumLoss(TestMeasure):
     measure = staticmethod(dice_bce_sum)
     bestcase_target = 0.
     bestcase_tol = 1e-2
     worstcase_target = 3.
     worstcase_tol = 1e-2
+    higher_is_better = False
 
     def test_worstcase(self):
         self._test_worstcase()
