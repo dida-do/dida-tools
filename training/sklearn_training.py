@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, multilabel_confusion_matrix
 
 from config.config import global_config
 from utils.path import create_dirs
@@ -19,7 +19,7 @@ train_config = {
         "kernel": "rbf"
     },
     "LOSS": accuracy_score,
-    "METRICS": [accuracy_score],
+    "METRICS": [accuracy_score, multilabel_confusion_matrix],
     "LOGFILE": "sklean_experiments.csv",
     "__COMMENT": None
 }
