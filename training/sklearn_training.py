@@ -25,7 +25,7 @@ train_config = {
         "accuracy": accuracy_score,
         "confusion_matrix": multilabel_confusion_matrix
     },
-    "LOGFILE": "sklean_experiments.csv",
+    "LOGFILE": "sklearn_experiments.csv",
     "__COMMENT": None
 }
 
