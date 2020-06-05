@@ -66,10 +66,10 @@ def smooth_dice_beta_loss(pred: torch.Tensor, target: torch.Tensor,
 
     tp = (pred.reshape(-1) * target.reshape(-1)).sum()
     fp = pred.reshape(-1).sum() - tp
-    tn = ((1-pred).reshape(-1) * (1-target).reshape(-1)).sum()
-    fn = (1-pred).reshape(-1).sum() - tn
+    tn = ((1 - pred).reshape(-1) * (1-target).reshape(-1)).sum()
+    fn = (1 - pred).reshape(-1).sum() - tn
 
-    return 1 - (((1+beta**2)*tp + smooth) / ((1+beta**2)*tp + beta**2*fn + fp + smooth + eps))
+    return 1 - (((1 + beta ** 2) * tp + smooth) / ((1 + beta ** 2) * tp + beta ** 2 * fn + fp + smooth + eps))
 
 def dice_bce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
                  smooth: float=1., eps: float=1e-6):
@@ -119,7 +119,7 @@ def precision(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torc
     pred = (pred > 0).float()
     target = (target > 0).float()
 
-    tp = ((pred == 1.) * (target == 1.)).float() # TODO why not (pred * target) ?
+    tp = ((pred == 1.) * (target == 1.)).float()
 
     return tp.sum() / (pred.sum() + eps)
 
@@ -178,8 +178,8 @@ def masked_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
     pred = torch.sigmoid(pred)
     target = (target[:, 1:] > 0).float()
 
-    pred = mask*pred
-    target = mask*target
+    pred = mask * pred
+    target = mask * target
 
     intersection = (pred.reshape(-1) * target.reshape(-1)).sum()
 
@@ -226,8 +226,8 @@ def masked_recall(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> 
     mask = target[:, 0].float()
     mask = mask[:, None]
 
-    pred = mask*(pred > 0).float()
-    target = mask*(target[:, 1:] > 0).float()
+    pred = mask * (pred > 0).float()
+    target = mask * (target[:, 1:] > 0).float()
 
     tp = ((pred == 1) * (target == 1)).float()
 
