@@ -10,19 +10,17 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
+resnet = torchvision.models.resnet18()
+resnet.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+resnet.fc = torch.nn.Linear(in_features=512, out_features=10, bias=True)
+
 
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "SESSION_NAME": "training-run",
     "ROUTINE_NAME": sys.modules[__name__],
-    "MODEL": torchvision.models.resnet18(),
+    "MODEL": resnet,
     "MODEL_CONFIG": {
-        "ch_in": 1,
-        "ch_out": 10,
-        "n_recursions": 5,
-        "dropout": .2,
-        "use_shuffle": True,
-        "activ": torch.nn.ELU
     },
     "DATA_LOADER_CONFIG": {
         "batch_size": 32,
