@@ -29,7 +29,7 @@ train_config = {
     "__COMMENT": None
 }
 
-def train(X_train, X_test, y_train, y_test, train_config: dict=train_config,
+def train(X_train, X_val, y_train, y_val, train_config: dict=train_config,
           global_config: dict=global_config):
 
     # path from global config?
@@ -50,21 +50,26 @@ def train(X_train, X_test, y_train, y_test, train_config: dict=train_config,
     joblib.dump(model, model_path+".joblib")
 
     # log metrics to csv
-    predictions = model.predict(X_test)
+    train_predictions = model.predict(X_train)
+    val_predictions = model.predict(X_val)
 
     log_content = train_config.copy()
-    log_content["VAL_LOSS"] = train_config["LOSS"](y_test, predictions)
+    log_content["TRAIN_LOSS"] = train_config["LOSS"](y_train, train_predictions)
+    log_content["VAL_LOSS"] = train_config["LOSS"](y_val, val_predictions)
+    log_content["TRAIN_METRICS"] = {}
     log_content["VAL_METRICS"] = {}
 
     for key, metric in train_config["METRICS"].items():
-        log_content["VAL_METRICS"][key] = metric(y_test, predictions)
+        log_content["TRAIN_METRICS"] = metric(y_train, train_predictions)
+        log_content["VAL_METRICS"][key] = metric(y_val, val_predictions)
 
     log_path = os.path.join(global_config["LOG_DIR"], train_config["LOGFILE"])
     write_log(log_path, log_content)
 
     # log metrics to mlflow
     logger = Log(train_config=train_config, run_name=train_config["SESSION_NAME"])
-    logger.log_metric("Test Loss", log_content["VAL_LOSS"])
+    logger.log_metric("Train Loss", log_content["TRAIN_LOSS"])
+    logger.log_metric("Validation Loss", log_content["VAL_LOSS"])
 
     # return validation loss
     return log_content["VAL_LOSS"]
