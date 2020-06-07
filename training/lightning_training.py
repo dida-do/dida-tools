@@ -47,3 +47,5 @@ def train(training_config: dict=train_config):
                          max_epochs=hparams.max_nb_epochs)
     
     trainer.fit(module)
+    
+    return trainer.checkpoint_callback.best
