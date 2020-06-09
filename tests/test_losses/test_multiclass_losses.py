@@ -21,7 +21,7 @@ class TestMultiClassMeasure(unittest.TestCase):
 
         # any random class except the first class is true
         negative_base = torch.randn(16, 4, 256, 256)
-        negative_base[:, 0] = -15 * torch.ones(16, 256, 256)
+        negative_base[:, 0] = negative_base.min() - 15 * torch.ones(16, 256, 256)
 
         # class label target
         self.target_class = torch.argmax(base, axis=1)
