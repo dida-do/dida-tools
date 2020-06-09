@@ -69,7 +69,8 @@ def smooth_dice_beta_loss(pred: torch.Tensor, target: torch.Tensor,
     tn = ((1 - pred).reshape(-1) * (1-target).reshape(-1)).sum()
     fn = (1 - pred).reshape(-1).sum() - tn
 
-    return 1 - (((1 + beta ** 2) * tp + smooth) / ((1 + beta ** 2) * tp + beta ** 2 * fn + fp + smooth + eps))
+    return 1 - (((1 + beta ** 2) * tp + smooth) / \
+           ((1 + beta ** 2) * tp + beta ** 2 * fn + fp + smooth + eps))
 
 def dice_bce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
                  smooth: float=1., eps: float=1e-6):
@@ -86,16 +87,23 @@ def dice_bce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
     :returns loss: (torch.Tensor) weighted sum of smooth dice_loss and BCE
     """
 
-    return weight * smooth_dice_loss(pred, target, smooth, eps) + (1 - weight) * F.binary_cross_entropy_with_logits(pred, (target > 0.).float())
+    return weight * smooth_dice_loss(pred, target, smooth, eps) + \
+           (1 - weight) * F.binary_cross_entropy_with_logits(pred, (target > 0.).float())
 
 def multi_class_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
                                  smooth: float=1., eps: float=1e-6):
     """
-    Smooth Dice loss for multi class classification.
+    Smooth Dice loss for multiclass classification.
+
+    :param pred: (torch.Tensor) predictions, logits
+    :param target: (torch.Tensor) target, class label
+    :param smooth: (float) smoothing value for smooth dice loss
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns loss: (torch.Tensor) multiclass smooth dice loss
     """
 
     prob = F.softmax(pred, dim=1)
-
     with torch.no_grad():
         num_class = pred.size(1)
         targets_oh = torch.eye(num_class, device=pred.get_device())[target.squeeze(1)]
@@ -111,12 +119,20 @@ def multi_class_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
 def multi_class_dice_ce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
                             smooth: float=1., eps: float=1e-6):
     """
-    Sum of cross entropy and dice loss for multi class case
+    Sum of cross entropy and dice loss for multiclass case
+
+    :param pred: (torch.Tensor) predictions, logits
+    :param target: (torch.Tensor) target, class label
+    :param smooth: (float) smoothing value for smooth dice loss
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns loss: (torch.Tensor) weighted sum of cross entropy and multiclass smooth dice loss
     """
 
     target = target.long()
 
-    return weight * multi_class_smooth_dice_loss(pred, target, smooth, eps) + (1. - weight) * F.cross_entropy(pred, target)
+    return weight * multi_class_smooth_dice_loss(pred, target, smooth, eps) + \
+           (1. - weight) * F.cross_entropy(pred, target)
 
 def precision(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
     """
