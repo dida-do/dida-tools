@@ -11,6 +11,10 @@ Path constants are found in `paths.py` The files refered to in there should be d
 * `target_generation.py` Creates labels for a GeoTiff dataset
 * `task_generation.py` Puts it all together, randomly creating a dataset and creating targets. As well as producing `.npy` files for training.
 
-**NOTE: This has a number of dependancies, In particular the Sentinel 1 preprocessing requires pyroSAR and SNAP to be installed correctly**
+## Additional Dependancies
+* rasterio
+* geopandas
+* pyroSAR (And SNAP installed correctly!)
+* osmnx
 
 Sentinel api credentials should be placed in `sentinel_scihub.ini`.
