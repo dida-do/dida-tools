@@ -87,8 +87,8 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
     # instantiate model and optimizer
     model = training_config["MODEL"].to(training_config["DEVICE"])
-    
-    optimizer = training_config["OPTIMIZER"](model.parameters(), **training_config["OPTIMIZER_CONFIG"])
+    optimizer = training_config["OPTIMIZER"](model.parameters(),
+                                             **training_config["OPTIMIZER_CONFIG"])
 
     # tensorboardX setup
     log_dir = os.path.join(global_config["LOG_DIR"], "tensorboardx", name)
