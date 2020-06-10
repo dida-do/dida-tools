@@ -2,7 +2,8 @@ import unittest
 import torch
 
 from models.unet import UNET
-from utils.torchutils import forward, backprop, assert_not_nan, assert_isfinite, assert_nonzero
+from utils.torchutils import forward, backprop, assert_not_nan, assert_isfinite, \
+                             assert_nonzero, load_model
 from utils.loss import smooth_dice_loss
 
 config = {
