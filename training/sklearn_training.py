@@ -33,7 +33,7 @@ def train(X_train, X_val, y_train, y_val, train_config: dict=train_config,
           global_config: dict=global_config):
 
     # path from global config?
-    for path in global_config:
+    for path in global_config.values():
         create_dirs(path)
 
     # model name and path
