@@ -20,8 +20,8 @@ class TestMeasure(unittest.TestCase):
 
         # assume logits as segmentation mask
         self.seg_mask_logits = torch.ones(16, 5, 256, 256)
-        self.seg_mask_logits[:, 1:] = 10.*base - 5.
-        self.negative_seg_mask_logits = -1*self.seg_mask_logits
+        self.seg_mask_logits[:, 1:] = 10. * base - 5.
+        self.negative_seg_mask_logits = -1 * self.seg_mask_logits
         self.half_negative_logits = self.seg_mask_logits.clone()
         self.half_negative_logits[:, :2] = self.negative_seg_mask_logits[:, :2]
 

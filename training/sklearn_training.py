@@ -30,7 +30,7 @@ train_config = {
 }
 
 def train(X_train, X_val, y_train, y_val, train_config: dict=train_config,
-          global_config: dict=global_config):
+          global_config: dict=global_config, save_model: bool=True):
 
     # create paths if necessary
     for path in global_config.values():
@@ -47,7 +47,8 @@ def train(X_train, X_val, y_train, y_val, train_config: dict=train_config,
     model.fit(X_train, y_train)
 
     # dump model to disk
-    joblib.dump(model, model_path+".joblib")
+    if save_model:
+        joblib.dump(model, model_path + ".joblib")
 
     # log metrics to csv
     train_predictions = model.predict(X_train)
