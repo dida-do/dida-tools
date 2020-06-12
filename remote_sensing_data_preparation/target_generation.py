@@ -24,7 +24,7 @@ from paths import LAND_POLYGONS, LCLU_RASTER
 def make_road_segmentation_target(src, all_touched=False, drop_tunnels=True, **kwargs):
     """Create a binary segmentation target for the detection of roads using OpenStreetMap.
     
-    There are a numer of limitations here:
+    There are a number of limitations here:
     * OpenStreetMap is incomplete and may have inaccuracies.
     * Clouds are not accounted for
     """
