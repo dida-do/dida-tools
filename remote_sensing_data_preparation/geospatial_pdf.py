@@ -17,7 +17,7 @@ class UniformMultiPolygonPDF(UniformSpherePDF):
     Used for uniformly sampling on land or within a country (or set of countries) for example.
     """
     def __init__(self, geodataframe):
-        self.polys = geodataframe.geometry.to_crs(4326)
+        self.polys = geodataframe.geometry.to_crs(epsg=4326)
     
     def __call__(self, n=1):
         pts = []
