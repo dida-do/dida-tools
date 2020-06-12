@@ -1,7 +1,7 @@
 """
 Script and functions to batch preprocess level 1 sentinel-1 data into multi-band GeoTiff format.
 
-Note that this does not split into batches or assemble traning pairs,
+Note that this does not split into batches or assemble training pairs,
 it only performs the SAR preprocessing to obtain a usable image
 
 Usage:

@@ -15,7 +15,7 @@ from tqdm import trange, tqdm
 from typing import Callable, Optional, List
 
 @dataclass
-class SingleGeoTifIterable:
+class SingleGeoTiffIterable:
     """
     Note that this is not a pytorch dataset. It is an iterable to be used inside them.
     
@@ -49,7 +49,7 @@ class SingleGeoTifIterable:
             return x
         
 @dataclass
-class MultiGeoTifIterable:
+class MultiGeoTiffIterable:
     """
     Note that this is not a pytorch dataset. It is an iterable to be used inside them.
     
@@ -73,7 +73,7 @@ class MultiGeoTifIterable:
                 else:
                     target_path = None
                 
-                it = SingleGeoTifIterable(file_path=self.dir_path / f,
+                it = SingleGeoTiffIterable(file_path=self.dir_path / f,
                                           target_path=target_path,
                                           block_size=self.block_size,
                                           max_nodata=self.max_nodata)
@@ -84,7 +84,7 @@ class MultiGeoTifIterable:
         return sum([len(it) for it in self.subiters])
     
     def __getitem__(self, idx):
-        """This currently iterates over all images in the folder until it reaches the required index, This can probably be improved to O(1) although this is not the slowest part of the process by far."""
+        """This currently iterates over all images in the folder until it reaches the required index. This can probably be improved to O(1) although this is not the slowest part of the process by far."""
         cumulative_size = 0
         for it in self.subiters:
             it_len = len(it)
@@ -101,9 +101,7 @@ def convert_geotiff_folder(dir_path: Path,
                            max_nodata: float=0.1,
                            unpaired=True):
     
-    """Convert a folder of GeoTiffs to a (much larger) folder of numpy arrays.
-    
-    Optionally also convert targets."""
+    """Convert a folder of GeoTiffs to a (much larger) folder of numpy arrays. Optionally also convert targets."""
     
     
     if output_dir is None:
@@ -114,7 +112,7 @@ def convert_geotiff_folder(dir_path: Path,
     
     if not os.path.exists(dir_path / "y"):
         # Unlabelled setting
-        it = MultiGeoTifIterable(dir_path / "x", block_size=block_size, max_nodata=max_nodata)
+        it = MultiGeoTiffIterable(dir_path / "x", block_size=block_size, max_nodata=max_nodata)
         
         for i in trange(len(it)):
             np.save(output_dir / "x" / f"{i}.npy", it[i])
@@ -122,7 +120,7 @@ def convert_geotiff_folder(dir_path: Path,
     elif unpaired == False:
         # Labelled setting
         (output_dir / "y").mkdir()
-        it = MultiGeoTifIterable(dir_path / "x", target_dir_path=dir_path / "y", block_size=block_size, max_nodata=max_nodata)
+        it = MultiGeoTiffIterable(dir_path / "x", target_dir_path=dir_path / "y", block_size=block_size, max_nodata=max_nodata)
         
         for i in trange(len(it)):
             x, y = it[i]
@@ -133,7 +131,7 @@ def convert_geotiff_folder(dir_path: Path,
         # Unpaired setting
         for folder in ["x", "y"]:
             print(folder)
-            it = MultiGeoTifIterable(dir_path / folder, block_size=block_size, max_nodata=max_nodata)
+            it = MultiGeoTiffIterable(dir_path / folder, block_size=block_size, max_nodata=max_nodata)
             for i in trange(len(it)):
                 np.save(output_dir / folder / f"{i}.npy", it[i])
 
