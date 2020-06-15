@@ -1,6 +1,5 @@
 name: dl-repo
 channels:
-  - conda-forge
   - anaconda
 dependencies:
   - fastai::fastai
@@ -9,4 +8,5 @@ dependencies:
   - pip:
     - dvc[gs]
     - nevergrad
-    - tensorboardX 
+    - tensorboardX
+    - albumentations

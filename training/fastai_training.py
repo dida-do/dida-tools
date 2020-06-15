@@ -35,7 +35,8 @@ train_config = {
         "n_recursions": 5,
         "dropout": .2,
         "use_shuffle": True,
-        "activ": ELU
+        "activ": ELU,
+        "use_pooling": True
     },
     "DATA_LOADER_CONFIG": {
         "batch_size": 64,
@@ -132,4 +133,4 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     write_log(log_path, log_content)
 
     return learner, log_content, name
-    
+

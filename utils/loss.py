@@ -1,9 +1,11 @@
 """
-This module contains generic pytorch losses for training.
+This module contains generic pyTorch losses for training. It expects
+channels-first ordering (sample, c, h, w) for any number of channels.
 """
 
 import sys
 import torch
+from torch.nn.modules import loss as torchloss
 from torch.nn import functional as F
 
 def get_loss(name: str):
@@ -15,7 +17,6 @@ def get_loss(name: str):
     and then returned. Losses in this module
     are directly returned as functions.
     """
-    from torch.nn.modules import loss as torchloss
     utilsloss = sys.modules[__name__]
     try:
         loss = getattr(torchloss, name)
@@ -27,109 +28,253 @@ def get_loss(name: str):
 
 def smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
                      smooth: float=1., eps: float=1e-6) -> torch.Tensor:
-    '''
+    """
     Smoothed dice loss.
 
-    :param pred: (torch.Tensor) predictions
-    :param target: (torch.Tensor) target
+    :param pred: (torch.Tensor) predictions, logits
+    :param target: (torch.Tensor) target, logits or binrary
     :param smooth: (float) smoothing value
     :param eps: (eps) epsilon for numerical stability
 
     :returns dice_loss: (torch.Tensor) the dice loss
-    '''
+    """
+
     pred = torch.sigmoid(pred)
     target = (target > 0).float()
 
-    intersection = (pred.view(-1) * target.view(-1)).sum()
+    intersection = (pred.reshape(-1) * target.reshape(-1)).sum()
 
     return 1 - ((2. * intersection + smooth) / (pred.sum() + target.sum() + smooth + eps))
 
-def dice_bce_sum(pred: torch.Tensor,
-                 target: torch.Tensor,
-                 weight: float=0.5,
-                 smooth: float=1.,
-                 eps: float=1e-6):
-    """Weighted sum of smooth dice loss and binary cross entropy.
-    
-    `weight` is the relative weight between the two loss functions."""
-    
-    return weight * smooth_dice_loss(pred, target, smooth, eps) + (1 - weight) * F.binary_cross_entropy_with_logits(pred, target)
+def smooth_dice_beta_loss(pred: torch.Tensor, target: torch.Tensor,
+                          beta: float=1., smooth: float=1., eps: float=1e-6) -> torch.Tensor:
+    """
+    Smoothed dice beta loss. Computes
+    1 - (((1 + beta**2) * tp + smooth) / ((1 + beta**2) * tp + beta**2 * fn + fp + smooth + eps))
 
-def multi_class_smooth_dice_loss(pred: torch.Tensor,
-                                 target: torch.Tensor,
-                                 smooth: float=1.,
-                                 eps: float=1e-6):
-    """Smooth Dice loss for multi class classification."""
-    
+    :param pred: (torch.Tensor) predictions, logits
+    :param target: (torch.Tensor) target, logits or binray
+    :param beta: (float) weight to emphasize recall
+    :param smooth: (float) smoothing value
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns dice_loss: (torch.Tensor) the dice loss
+    """
+
+    pred = torch.sigmoid(pred)
+    target = (target > 0).float()
+
+    tp = (pred.reshape(-1) * target.reshape(-1)).sum()
+    fp = pred.reshape(-1).sum() - tp
+    tn = ((1 - pred).reshape(-1) * (1-target).reshape(-1)).sum()
+    fn = (1 - pred).reshape(-1).sum() - tn
+
+    return 1 - (((1 + beta ** 2) * tp + smooth) / \
+           ((1 + beta ** 2) * tp + beta ** 2 * fn + fp + smooth + eps))
+
+def dice_bce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
+                 smooth: float=1., eps: float=1e-6):
+    """
+    Weighted sum of smooth dice loss and binary cross entropy.
+    `weight` is the relative weight between the two loss functions.
+
+    :param pred: (torch.Tensor) predictions, logits
+    :param target: (torch.Tensor) target, logits or binray
+    :param weight: (float) weight to emphasize smooth dice loss, 0. <= weight <= 1.
+    :param smooth: (float) smoothing value for smooth dice loss
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns loss: (torch.Tensor) weighted sum of smooth dice_loss and BCE
+    """
+
+    return weight * smooth_dice_loss(pred, target, smooth, eps) + \
+           (1 - weight) * F.binary_cross_entropy_with_logits(pred, (target > 0.).float())
+
+def multi_class_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
+                                 smooth: float=1., eps: float=1e-6):
+    """
+    Smooth Dice loss for multiclass classification.
+
+    :param pred: (torch.Tensor) predictions, logits
+    :param target: (torch.Tensor) target, class label
+    :param smooth: (float) smoothing value for smooth dice loss
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns loss: (torch.Tensor) multiclass smooth dice loss
+    """
+
     prob = F.softmax(pred, dim=1)
-    
     with torch.no_grad():
         num_class = pred.size(1)
-        targets_oh = torch.eye(num_class, device=pred.get_device())[targets.squeeze(1)]
+        targets_oh = torch.eye(num_class, device=pred.get_device())[target.squeeze(1)]
         targets_oh = targets_oh.permute(0, 3, 1, 2).float()
-        
+
         dims = (0,) + tuple(range(2, targets_oh.ndimension()))
-        
+
     intersect = torch.sum(prob * targets_oh, dims)
     cardinality = torch.sum(prob + targets_oh, dims)
-        
-    return 1. - ((2. * intersect + self.smooth) / (cardinality + self.smooth)).mean()
-    
-def multi_class_dice_ce_sum(pred: torch.Tensor,
-                            target: torch.Tensor,
-                            weight: float=0.5,
-                            smooth: float=1.,
-                            eps: float=1e-6):
-    """Sum of cross entropy and dice loss for multi class case"""
-    
+
+    return 1. - ((2. * intersect + smooth) / (cardinality + smooth + eps)).mean()
+
+def multi_class_dice_ce_sum(pred: torch.Tensor, target: torch.Tensor, weight: float=0.5,
+                            smooth: float=1., eps: float=1e-6):
+    """
+    Sum of cross entropy and dice loss for multiclass case
+
+    :param pred: (torch.Tensor) predictions, logits
+    :param target: (torch.Tensor) target, class label
+    :param smooth: (float) smoothing value for smooth dice loss
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns loss: (torch.Tensor) weighted sum of cross entropy and multiclass smooth dice loss
+    """
+
     target = target.long()
-    
-    return weight * multi_class_smooth_dice_loss(pred, target, smooth, eps) + (1. - weight) * F.cross_entropy(pred, target)
+
+    return weight * multi_class_smooth_dice_loss(pred, target, smooth, eps) + \
+           (1. - weight) * F.cross_entropy(pred, target)
 
 def precision(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
-    '''
+    """
     Function to calculate the precision.
 
-    :param pred: (torch.Tensor) predictions
-    :param target: (torch.Tensor) target
+    :param pred: (torch.Tensor) predictions, logits or binray
+    :param target: (torch.Tensor) target, logits or binray
     :param eps: (eps) epsilon for numerical stability
 
     :returns precision: (torch.Tensor)
-    '''
+    """
+
     pred = (pred > 0).float()
     target = (target > 0).float()
+
+    tp = ((pred == 1.) * (target == 1.)).float()
+
+    return tp.sum() / (pred.sum() + eps)
+
+def recall(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
+    """
+    Function to calculate the recall.
+
+    :param pred: (torch.Tensor) predictions, logits or binary
+    :param target: (torch.Tensor) target, logits or binary
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns recall: (torch.Tensor)
+    """
+
+    pred = (pred > 0).float()
+    target = (target > 0).float()
+
+    tp = ((pred == 1.) * (target == 1.)).float()
+
+    return tp.sum() / (target.sum() + eps)
+
+def f1(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
+    """
+    Function to calculate the f1 score.
+
+    :param pred: (torch.Tensor) predictions, logits or binary
+    :param target: (torch.Tensor) target, logits or binary
+
+    :returns f1: (torch.Tensor)
+    """
+
+    p = precision(pred, target)
+    r = recall(pred, target)
+
+    return (2 * p * r) / (p + r + eps)
+
+def masked_smooth_dice_loss(pred: torch.Tensor, target: torch.Tensor,
+                            smooth: float=1., eps: float=1e-6) -> torch.Tensor:
+    """
+    Masked smoothed dice loss. Like smoothed dice loss,
+    but with usability mask in the first channel
+    of the target, i.e. target should have one more channel
+    than prediction.
+
+    :param pred: (torch.Tensor) predictions, logits or binary
+    :param target: (torch.Tensor) target, logits or binary
+    :param smooth: (float) smoothing value
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns dice_loss: (torch.Tensor) the dice loss
+    """
+
+    mask = (target[:, 0] > 0.).float()
+    mask = mask[:, None]
+
+    pred = torch.sigmoid(pred)
+    target = (target[:, 1:] > 0).float()
+
+    pred = mask * pred
+    target = mask * target
+
+    intersection = (pred.reshape(-1) * target.reshape(-1)).sum()
+
+    return 1 - ((2. * intersection + smooth) / (pred.sum() + target.sum() + smooth + eps))
+
+def masked_precision(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
+    """
+    Function to calculate the masked precision. Like precision,
+    but with usability mask in channel in the first channel
+    of the target, i.e. target should have one more channel
+    than prediction.
+
+    :param pred: (torch.Tensor) predictions, logits or binary
+    :param target: (torch.Tensor) target, logits or binary
+    :param eps: (eps) epsilon for numerical stability
+
+    :returns precision: (torch.Tensor)
+    """
+
+    mask = (target[:, 0] > 0.).float()
+    mask = mask[:, None]
+
+    pred = mask*(pred > 0).float()
+    target = mask*(target[:, 1:] > 0).float()
 
     tp = ((pred == 1) * (target == 1)).float()
 
     return tp.sum() / (pred.sum() + eps)
 
-def recall(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
-    '''
-    Function to calculate the recall.
+def masked_recall(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
+    """
+    Function to calculate the masked recall. Like recall,
+    but with usability mask in channel in the first channel
+    of the target, i.e. target should have one more channel
+    than prediction.
 
-    :param pred: (torch.Tensor) predictions
-    :param target: (torch.Tensor) target
+    :param pred: (torch.Tensor) predictions, logits or binary
+    :param target: (torch.Tensor) target, logits or binary
     :param eps: (eps) epsilon for numerical stability
 
     :returns recall: (torch.Tensor)
-    '''
-    pred = (pred > 0).float()
-    target = (target > 0).float()
+    """
+
+    mask = (target[:, 0] > 0.).float()
+    mask = mask[:, None]
+
+    pred = mask * (pred > 0).float()
+    target = mask * (target[:, 1:] > 0).float()
 
     tp = ((pred == 1) * (target == 1)).float()
 
     return tp.sum() / (target.sum() + eps)
 
-def f1(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    '''
-    Function to calculate the f1 score.
+def masked_f1(pred: torch.Tensor, target: torch.Tensor, eps: float=1e-6) -> torch.Tensor:
+    """
+    Function to calculate the masked f1 score. Like f1 score,
+    but with usability mask in channel in the first channel
+    of the target, i.e. target should have one more channel
+    than prediction.
 
-    :param pred: (torch.Tensor) predictions
-    :param target: (torch.Tensor) target
+    :param pred: (torch.Tensor) predictions, logits or binary
+    :param target: (torch.Tensor) target, logits or binary
 
     :returns f1: (torch.Tensor)
-    '''
-    p = precision(pred, target)
-    r = recall(pred, target)
+    """
+    p = masked_precision(pred, target)
+    r = masked_recall(pred, target)
 
-    return (2 * p * r) / (p + r)
+    return (2 * p * r) / (p + r + eps)

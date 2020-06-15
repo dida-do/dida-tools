@@ -47,7 +47,7 @@ class DeconvLayer(nn.Module):
     Standard deconvolution layer, uses pixel shuffle
     https://arxiv.org/abs/1707.02937
     """
-    def __init__(self, ch_in: int, ch_out: int,
+    def __init__(self, ch_in: int, ch_out: int, ks: int=3,
                  stride: int=2, dropout: Optional[float]=None,
                  activ: nn.Module=nn.ELU):
         """
@@ -58,7 +58,7 @@ class DeconvLayer(nn.Module):
         :param dropout: whether or not to use dropout and how much
         """
         super().__init__()
-        self.conv = ConvLayer(ch_in, (stride**2) * ch_out, dropout=dropout, activ=activ)
+        self.conv = ConvLayer(ch_in, (stride**2) * ch_out, ks=ks, dropout=dropout, activ=activ)
         self.pixelshuffle = nn.PixelShuffle(stride)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

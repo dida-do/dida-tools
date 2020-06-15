@@ -2,7 +2,6 @@
 U-NET Architecture. We recursively build modules that downsample and upsample
 before concatenating with the copied input. Options exist for specifying the
 exact architecture required.
-
 """
 
 from typing import Optional
@@ -16,18 +15,25 @@ class UnetBulk(nn.Module):
     """
     Recursively build a U-NET
     """
-    def __init__(self, ch_in: int=32, n_recursions: int=4, dropout: Optional[float]=None,
-                 use_shuffle :bool=True, activ: nn.Module=nn.ELU):
-        super().__init__()
+    def __init__(self, ch_in: int = 32, n_recursions: int = 4, dropout: Optional[float] = None,
+                 use_shuffle: bool = True, activ: nn.Module = nn.ELU, use_pooling: bool = False):
         """
         :param ch_in: number of input Channels
         :param n_recursions: number of times to repeat
         :param use_shuffle: whether to use pixel shuffel or traditional deconvolution
         :param dropout: whether or not to use dropout and how much
+        :param use_pooling: whether to use pooling or strides for downsampling
         """
-        self.down = nn.Sequential(ConvLayer(ch_in, ch_in, stride=2, dropout=dropout, activ=activ),
-                                  ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
-                                  ConvLayer(ch_in, 2 * ch_in, dropout=dropout, activ=activ))
+        super().__init__()
+        layers = [ConvLayer(ch_in, ch_in, stride=2 - int(use_pooling), dropout=dropout, activ=activ),
+                  ConvLayer(ch_in, ch_in, dropout=dropout, activ=activ),
+                  ConvLayer(ch_in, 2 * ch_in, dropout=dropout, activ=activ)]
+
+
+        if use_pooling:
+            layers.insert(1, nn.MaxPool2d(2))
+
+        self.down = nn.Sequential(*layers)
 
         if n_recursions > 1:
             self.rec_unet = UnetBulk(ch_in=2*ch_in,
@@ -58,9 +64,9 @@ class UNET(nn.Module):
     """
     Wrapper for UNET_Bulk together with input and output layers
     """
-    def __init__(self, ch_in: int=12, ch_out: int=2, bulk_ch: int=32, n_recursions: int=4,
-                 use_shuffle: bool=True, dropout: Optional[float]=None, activ: nn.Module=nn.ELU):
-        super().__init__()
+    def __init__(self, ch_in: int = 12, ch_out: int = 2, bulk_ch: int = 32, n_recursions: int = 4,
+                 use_shuffle: bool = True, dropout: Optional[float] = None,
+                 activ: nn.Module = nn.ELU, use_pooling: bool = True):
         """
         :param ch_in: number of input Channels
         :param ch_out: number of output Channels
@@ -69,11 +75,12 @@ class UNET(nn.Module):
         :param use_shuffle: whether to use pixel shuffel or traditional deconvolution
         :param dropout: whether or not to use dropout and how much
         """
+        super().__init__()
         self.in_layer = ConvLayer(ch_in, bulk_ch, ks=1, pad=0, dropout=dropout, activ=activ)
 
         self.bulk = UnetBulk(ch_in=bulk_ch, n_recursions=n_recursions,
                              dropout=dropout, use_shuffle=use_shuffle,
-                             activ=activ)
+                             activ=activ, use_pooling=use_pooling)
 
         self.out = nn.Conv2d(2 * bulk_ch, ch_out, (1, 1))
 

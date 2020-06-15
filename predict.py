@@ -23,7 +23,7 @@ predict_config = {
         "n_recursions": 5,
         "use_shuffle": True,
         "activ": torch.nn.ELU },
-    "WEIGHTS": "/path/to/model/weights.pth",
+    "WEIGHTS": "weights/bestmodel.pth",
     "DEVICE": torch.device("cuda"),
     }
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         
         # note: shape manipulation is needed since we do not feed batches, but single images
         prediction = forward(model, data[None, :, :, :], predict_config["DEVICE"])
-        
+
         # get output file basename
         basename = os.path.basename(path)
         name = os.path.splitext(basename)[0]
@@ -73,5 +73,4 @@ if __name__ == "__main__":
         # example write file as .npy - note that if CUDA is used, the tensor needs to be transferred to CPU:
         out_name = "{}{}{}.npy".format(predict_config["PREFIX"], name, predict_config["SUFFIX"])
         out_path = os.path.join(args.output, name)
-        np.save(out_path, prediction.cpu().numpy())   
-    
+        np.save(out_path, prediction.detach().cpu().numpy())
