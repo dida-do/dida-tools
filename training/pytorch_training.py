@@ -24,18 +24,14 @@ from utils.loss import smooth_dice_loss, precision, recall, f1
 from utils.path import create_dirs
 import utils.logging.log as log
 
-import torchvision.models as models
-
-import torchvision.models as models
-
 train_config = {
     "DATE": datetime.now().strftime("%Y%m%d-%H%M%S"),
     "SESSION_NAME": "training-run",
     "ROUTINE_NAME": sys.modules[__name__],
     "MODEL": UNET,
     "MODEL_CONFIG": {
-        "ch_in": 1,
-        "ch_out": 10,
+        "ch_in": 12,
+        "ch_out": 2,
         "n_recursions": 5,
         "dropout": .2,
         "use_shuffle": True,
@@ -52,7 +48,7 @@ train_config = {
         "lr": 1e-3
     },
     "EPOCHS":  100,
-    "LOSS": torch.nn.CrossEntropyLoss(),
+    "LOSS": smooth_dice_loss,
     "METRICS": {
         "f1": f1,
         "precision": precision,
@@ -86,7 +82,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
 
     # instantiate model and optimizer
-    model = training_config["MODEL"].to(training_config["DEVICE"])
+    model = training_config["MODEL"](**training_config["MODEL_CONFIG"]).to(training_config["DEVICE"])
     optimizer = training_config["OPTIMIZER"](model.parameters(),
                                              **training_config["OPTIMIZER_CONFIG"])
 
@@ -110,17 +106,6 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
                     optimizer.zero_grad()
                     output = model(x)
-                    y_vec = y #torch.cat([y_vec, y])
-                    y_hat_vec = output #torch.cat([y_hat_vec, output])
-
-            loss = training_config["LOSS"](y_hat_vec, y_vec)
-            test_losses.append(loss)
-            print(test_losses)
-
-            # best model checkpointing
-            if torch.all(loss <= torch.stack(test_losses, dim=0)):
-                torch.save(model.state_dict(), modelpath + "bestmodel" + ".pth")
-                print("Best model saved to {}".format("bestmodel" + ".pth"))
 
                     loss = training_config["LOSS"](output, y)
                     loss.backward()
@@ -148,8 +133,8 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
                         model.eval()
                         output = model(x)
-                        y_vec = y#torch.cat([y_vec, y])
-                        y_hat_vec = output#torch.cat([y_hat_vec, output])
+                        y_vec = torch.cat([y_vec, y])
+                        y_hat_vec = torch.cat([y_hat_vec, output])
 
                 # TODO tensorboard loss logging
                 loss = training_config["LOSS"](y_hat_vec, y_vec)
