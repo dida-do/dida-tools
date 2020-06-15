@@ -133,8 +133,8 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
                         model.eval()
                         output = model(x)
-                        y_vec = torch.cat([y_vec, y])
-                        y_hat_vec = torch.cat([y_hat_vec, output])
+                        y_vec = y
+                        y_hat_vec = output
 
                 # TODO tensorboard loss logging
                 loss = training_config["LOSS"](y_hat_vec, y_vec)
