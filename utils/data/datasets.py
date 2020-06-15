@@ -10,7 +10,70 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 from albumentations import HorizontalFlip, VerticalFlip, Rotate
+import pandas as pd
 from utils.data.augmenter import Augmenter
+
+DATA_FORMATS = {
+    'npy': {
+        'suffixes': ['npy'],
+        'import_function': np.load,
+        'to_npy_converter': lambda x: x},
+    'tensor': {
+        'suffixes': ['pt'],
+        'import_function': torch.load,
+        'to_npy_converter': lambda x: x.numpy()},
+    'csv': {
+        'suffixes': ['csv'],
+        'import_function': pd.read_csv,
+        'to_npy_converter': lambda x: x.to_numpy()},
+    'excel': {
+        'suffixes': ['xls', 'xlsx', 'xlsm', 'xlsb', 'odf'],
+        'import_function': pd.read_excel,
+        'to_npy_converter': lambda x: x.to_numpy()},
+    'hdf': {
+        'suffixes': ['hdf', 'h5', 'hdf5', 'he5'],
+        'import_function': pd.read_hdf,
+        'to_npy_converter': lambda x: x.to_numpy()},
+    'json': {
+        'suffixes': ['json'],
+        'import_function': pd.read_json,
+        'to_npy_converter': lambda x: x.to_numpy()},
+    'html': {
+        'suffixes': ['html'],
+        'import_function': pd.read_html,
+        'to_npy_converter': lambda x: x.to_numpy()},
+}
+
+
+def check_for_data_format(suffix: str) -> str:
+    """
+    Checks if a suffix corresponds to one of the DATA_FORMATS.
+
+    Example:
+    check_for_data_format('xlsx') -> 'excel'
+    """
+    for data_format in DATA_FORMATS:
+        if suffix in DATA_FORMATS[data_format]['suffixes']:
+            return data_format
+    return None
+
+
+def check_for_file_with_supported_format(directory: str) -> str:
+    """
+    Searches for a file with a supported format in a specified directory
+    and returns the format. The format has to be specified in DATA_FORMATS.
+    Raises an error if it does not find any supported file.
+
+    Example:
+    check_for_data_format('data/x/') -> 'csv'
+    """
+    for item in os.listdir(directory):
+        data_format = check_for_data_format(item.split('.')[-1])
+        if data_format:
+            return data_format
+
+    raise FileNotFoundError('No files with supported suffixes found under DATA_DIR')
+
 
 class NpyDataset(torch.utils.data.Dataset):
     """
@@ -28,9 +91,11 @@ class NpyDataset(torch.utils.data.Dataset):
         :param x_dir: (str) observation directory
         :param y_dir: (str) label directory
         """
-
         self.x_dir = x_dir
         self.y_dir = y_dir
+
+        self.x_format = check_for_file_with_supported_format(self.x_dir)
+        self.y_format = check_for_file_with_supported_format(self.y_dir)
 
         # sort is needed for order in data
         self.x_list = np.sort(os.listdir(x_dir))
@@ -56,9 +121,12 @@ class NpyDataset(torch.utils.data.Dataset):
         """
         img_name = os.path.join(self.x_dir, self.x_list[idx])
         img = np.load(img_name)
+        img = DATA_FORMATS[self.x_format]['import_function'](img_name)
+        img = DATA_FORMATS[self.x_format]['to_npy_converter'](img)
 
         label_name = os.path.join(self.y_dir, self.y_list[idx])
-        label = np.load(label_name)
+        label = DATA_FORMATS[self.y_format]['import_function'](label_name)
+        label = DATA_FORMATS[self.y_format]['to_npy_converter'](label)
 
         label = (label > 0).astype(float)
 
@@ -91,14 +159,15 @@ class NpyPredictionDataset(torch.utils.data.Dataset):
         return len(self.files)
 
     def __getitem__(self, idx: int) -> tuple:
-
         file = np.load(self.files[idx])
         file = torch.Tensor(file)
         return self.files[idx], file
 
+
 @dataclass
 class InpaintingDataset(torch.utils.data.Dataset):
-    """Dataset for inpainting from numpy files
+    """
+    Dataset for inpainting from numpy files
 
     :param root_dir: Directory containing x and y directories
     :param aug: data Augmentation pipeline.
@@ -108,7 +177,6 @@ class InpaintingDataset(torch.utils.data.Dataset):
     :param fnames: Optional subset of files to use.
     :param mask_fn: Function to create masks.
     """
-
     root_dir: Path
     aug: Callable
     input_preprocess: Optional[Callable]
@@ -127,14 +195,16 @@ class InpaintingDataset(torch.utils.data.Dataset):
         return len(self.fnames)
 
     def __getitem__(self, idx):
-        x = np.clip((np.load(self.root_dir / "x" / self.fnames[idx]) + self.min_val) / self.max_val, 0, 1)
+        x = np.clip((np.load(self.root_dir / "x" / self.fnames[idx]) + \
+                    self.min_val) / self.max_val, 0, 1)
         x = (x * 255).astype(np.uint8).transpose(1, 2, 0)
 
         if self.aug is not None:
             initial_shape = x.shape
             x = self.aug(image=x)["image"]
 
-            # Some augmentations are not suited to multi-channel data and silently change it to 3 channels
+            # Some augmentations are not suited to multi-channel data and
+            # silently change it to 3 channels
             assert x.shape == initial_shape
 
         mask = self.mask_fn(x).transpose(2, 0, 1).astype(np.float16)
@@ -146,9 +216,11 @@ class InpaintingDataset(torch.utils.data.Dataset):
 
         return x, torch.Tensor(mask).float()
 
+
 @dataclass
 class SegmentationDataset(torch.utils.data.Dataset):
-    """Dataset for segmentation from numpy files
+    """
+    Dataset for segmentation from numpy files
 
     :param root_dir: Directory containing x and y directories
     :param aug: data Augmentation pipeline.
@@ -157,7 +229,6 @@ class SegmentationDataset(torch.utils.data.Dataset):
     :param max_val: The maximum value to clip input data.
     :param fnames: Optional subset of files to use.
     """
-
     root_dir: Path
     aug: Callable
     input_preprocess: Optional[Callable]
@@ -175,7 +246,8 @@ class SegmentationDataset(torch.utils.data.Dataset):
         return len(self.fnames)
 
     def __getitem__(self, idx):
-        x = np.clip((np.load(self.root_dir / "x" / self.fnames[idx]) + self.min_val) / self.max_val, 0, 1)
+        x = np.clip((np.load(self.root_dir / "x" / self.fnames[idx]) + self.min_val) \
+                    / self.max_val, 0, 1)
         x = (x * 255).astype(np.uint8).transpose(1, 2, 0)
 
         y = np.load(self.root_dir / "y" / self.fnames[idx])
@@ -205,7 +277,8 @@ class SegmentationDataset(torch.utils.data.Dataset):
             x = augmented["image"]
             y = augmented["mask"]
 
-            # Some augmentations are not suited to multi-channel data and silently change it to 3 channels
+            # Some augmentations are not suited to multi-channel data and
+            # silently change it to 3 channels
 
             assert x.shape == initial_shape
             assert y.shape == initial_y_shape
@@ -217,9 +290,11 @@ class SegmentationDataset(torch.utils.data.Dataset):
 
         return x, torch.Tensor(y).float().permute(2, 0, 1)
 
+
 @dataclass
 class UnpairedImageDataset(torch.utils.data.Dataset):
-    """Dataset for two sets of unpaired images eg for a cycleGAN.
+    """
+    Dataset for two sets of unpaired images eg for a cycleGAN.
 
     :param root_dir: Directory containing x and y directories
 
@@ -229,8 +304,8 @@ class UnpairedImageDataset(torch.utils.data.Dataset):
     :param input_preprocess: Additional deterministic preprocessing for input
     :param min_val: The minimum value to clip input data.
     :param max_val: The maximum value to clip input data.
-    :param fnames: Optional subset of files to use."""
-
+    :param fnames: Optional subset of files to use.
+    """
     root_dir: Path
     x_aug: Callable
     x_input_preprocess: Optional[Callable]
@@ -259,10 +334,12 @@ class UnpairedImageDataset(torch.utils.data.Dataset):
         return len(self.x_fnames)
 
     def __getitem__(self, idx):
-        x = np.clip((np.load(self.root_dir / "x" / self.x_fnames[idx]) + self.x_min_val) / self.x_max_val, 0, 1)
+        x = np.clip((np.load(self.root_dir / "x" / self.x_fnames[idx]) + self.x_min_val) \
+                    / self.x_max_val, 0, 1)
         x = (x * 255).astype(np.uint8).transpose(1, 2, 0)
 
-        y = np.clip((np.load(self.root_dir / "y" / self.y_fnames[idx]) + self.y_min_val) / self.y_max_val, 0, 1)
+        y = np.clip((np.load(self.root_dir / "y" / self.y_fnames[idx]) + self.y_min_val) \
+                    / self.y_max_val, 0, 1)
         y = (y * 255).astype(np.uint8).transpose(1, 2, 0)
 
         if self.x_aug is not None:
@@ -295,9 +372,12 @@ class UnpairedImageDataset(torch.utils.data.Dataset):
 
         return x, y
 
-class ImageBuffer:
-    """Image buffer for training discriminator in a GAN after github.com/junyanz/pytorch-CycleGAN-and-pix2pix"""
 
+class ImageBuffer:
+    """
+    Image buffer for training discriminator in a GAN after
+    github.com/junyanz/pytorch-CycleGAN-and-pix2pix
+    """
     def __init__(self, pool_size: int, replace_prob: float = 0.5):
         self.pool_size = pool_size
         self.num_imgs = 0
