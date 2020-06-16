@@ -246,3 +246,7 @@ In line with libraries such as opencv, skimage and albumentations we assume the 
 The images can be stored on the hard drive in various formats and we support methods to load the data.
 For pre-processing by the CPU we assume the images to be ndarrays with channels-last ordering. The dataloader should see to convert the images to torch.tensors with channels-first ordering once the images are send to the GPU.
 
+## Getting started
+# Installation
+# Start training
+# Make predictions
