@@ -1,4 +1,4 @@
-name: dl-repo
+name: dida-tools
 channels:
   - anaconda
   - conda-forge
