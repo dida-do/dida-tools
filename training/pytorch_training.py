@@ -77,8 +77,8 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
                                               **training_config["DATA_LOADER_CONFIG"])
 
     # model name & paths
-    name = "_".join([train_config["DATE"],
-                     train_config["SESSION_NAME"]])
+    name = "_".join([training_config["DATE"],
+                     training_config["SESSION_NAME"]])
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
 
     # instantiate model and optimizer
@@ -93,7 +93,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
     test_losses = []
 
-    with log.Log(train_config=train_config, run_name=train_config['SESSION_NAME']) as logger:
+    with log.Log(train_config=training_config, run_name=training_config['SESSION_NAME']) as logger:
 
         try:
             for epoch in range(training_config["EPOCHS"]):
