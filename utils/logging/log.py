@@ -38,7 +38,11 @@ class Log():
                          nested=nested)
         self.log_hyperparameters(global_config)
         if train_config:
-            mlflow.log_params(train_config)
+            for key in train_config:
+                if key == 'MODEL':
+                    mlflow.log_param(key, type(train_config[key]))
+                else:
+                    mlflow.log_param(key, train_config[key])
 
     def log_hyperparameters(self, params: {str}, *args) -> None:
         mlflow.log_params(params, *args)
