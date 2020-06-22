@@ -13,7 +13,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 resnet = torchvision.models.resnet18()
-resnet.conv1 = torch.nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+resnet.conv1 = torch.nn.Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 resnet.fc = torch.nn.Linear(in_features=512, out_features=10, bias=True)
 
 train_config = {
@@ -45,17 +45,15 @@ train_config = {
     "__COMMENT": None
 }
 
-train_data = torchvision.datasets.MNIST(root='data',
-                                        train=True,
-                                        transform=transforms.ToTensor(),
-                                        target_transform=None,
-                                        download=False)
+transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-test_data = torchvision.datasets.MNIST(root='data',
-                                       train=False,
-                                       transform=transforms.ToTensor(),
-                                       target_transform=None,
-                                       download=False)
+train_data = torchvision.datasets.CIFAR10(root='data', train=True,
+                                        download=True, transform=transform)
+
+test_data = torchvision.datasets.CIFAR10(root='data', train=False,
+                                       download=True, transform=transform)
 
 pytorch_training.train(train_dataset=train_data,
                        test_dataset=test_data,
