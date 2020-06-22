@@ -82,7 +82,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
     modelpath = os.path.join(global_config["WEIGHT_DIR"], name)
 
     # instantiate model and optimizer
-    model = training_config["MODEL"](**training_config["MODEL_CONFIG"]).to(training_config["DEVICE"])
+    model = training_config["MODEL"].to(training_config["DEVICE"])
     optimizer = training_config["OPTIMIZER"](model.parameters(),
                                              **training_config["OPTIMIZER_CONFIG"])
 
@@ -111,7 +111,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
                     loss.backward()
                     optimizer.step()
 
-                    logger.log_metric('Training Loss', loss)
+                    logger.log_metric('Training Loss', loss.item())
 
                     print("\repoch[{}] iteration[{}/{}] loss: {:.2f} "
                           "".format(epoch,
@@ -133,8 +133,8 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
 
                         model.eval()
                         output = model(x)
-                        y_vec = torch.cat([y_vec, y])
-                        y_hat_vec = torch.cat([y_hat_vec, output])
+                        y_vec = y#torch.cat([y_vec, y])
+                        y_hat_vec = output#torch.cat([y_hat_vec, output])
 
                 # TODO tensorboard loss logging
                 loss = training_config["LOSS"](y_hat_vec, y_vec)
@@ -142,7 +142,7 @@ def train(train_dataset: torch.utils.data.Dataset, test_dataset: torch.utils.dat
                 print(test_losses)
 
                 #logging using the logging tool
-                logger.log_metric('Evaluation Loss', loss)
+                logger.log_metric('Evaluation Loss', loss.item())
 
                 # best model checkpointing
                 if torch.all(loss <= torch.stack(test_losses, dim=0)):
