@@ -38,6 +38,11 @@ make env-dev
 to install all tool needed for training and corresponding development.
 Note: `make env-dev` automatically runs `make env` as part of the recipe.
 
+Once the build was successful, the environment can be activate by running
+```
+conda activate dl-repo
+```
+
 ## Package contents
 
 See below for an
@@ -196,6 +201,9 @@ Everything can happen in the config, once the training routine is set up as desi
 
 Training is invoked by running `train.py` (or a similar script). The script needs to instantiate the training and validation dataset from the respective directories, e.g. `NpyDataset`s of `ndarray`s 
 ```python
+from config.config import global_config
+from training import pytorch_training
+
 train_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'train/x'),
                                  os.path.join(global_config["DATA_DIR"], 'train/y'))
 
@@ -213,12 +221,13 @@ pytorch_training.train(train_data,
 
 ```
 
-A selection of training routines is already implemented and stored in the module `training`. The signature of the training routines can vary. Of course, these steps can also be executed in a Jupyter Notebook. 
+A selection of training routines is already implemented and stored in the module `training`. The signature of the training routines can vary. Of course, these steps can also be executed in a Jupyter Notebook.
 
 ## Models
 
-Model implementation can be found in the `models` submodule. For now,
-only an exemplary recursive U-Net implementation is available. Feel free to add your model!
+Model implementations can be found in the `models` submodule. For now, an exemplary recursive U-Net implementation and binary classification models from `torchvision` are available. Feel free to add your own!
+
+Additionally, `scikit-learn` provides a large number of algorithms.
 
 ## Experiment tracking
 
@@ -263,6 +272,8 @@ can for example access via SSH port forwarding, if you are on a remote machine. 
 you changed to logging directory settings. See the actual training routines for details about which information is logged.
 
 ## Datasets
+
+
 
 ## Unit testing
 
