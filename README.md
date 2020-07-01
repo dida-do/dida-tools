@@ -1,7 +1,7 @@
-# Dida Deep Learning Tools
+# dida Tools
 
 This package is intended as a collection of fully compatible and flexible
-patterns for deep learning projects. Rather than giving a detailed implementation
+patterns for machine learning projects. Rather than giving a detailed implementation
 for every possible task 
 ("Why don't you have a *channel shuffle group transpose convolution layer*
 for my Wasserstein DCGAN"), we rather aim to provide templates and best practices for
@@ -175,6 +175,7 @@ Everything can happen in the config, once the training routine is set up as desi
 
 ## Training
 
+Training is invoked by running `train.py` (or a similar script). The script needs to instantiate the training and validation dataset and run the specified training routine. A selection of training routines is already implemented and stored in the module `training`.
 
 ## Models
 
