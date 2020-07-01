@@ -8,16 +8,37 @@ for my Wasserstein DCGAN"), we rather aim to provide templates and best practice
 intuitive architectures. 
 
 Additionally, typical requirements such as Tensorboard logging, simple and extensible
-training schemes, experiment tracking and model testing are covered.
+training schemes, experiment tracking, hyperparameter optimization and model testing are covered.
 
 If you use a very specific implementation of a layer/model/loss, you are invited to add your implementation here.
  
 **All components of the package are to be understood as a template which is designed to be
 easily modified - not a hard implementation of some specific pattern.**
 
+
+## Installation
+
+The installation of the package is very straight-forward. It simply needs to be cloned to a desired location with
+```
+git clone https://gitlab.com/didado/dida-tools.git
+```
+Subsequently, the environment needs to be set up.
+
+## Dependencies and environments
+
+Dependencies are aggregated via `environment.yml` and `dev.yml` which specify a list of
+`conda`-based project requirements. Run
+```
+make env
+```
+to only install dependencies needed for model testing and inference and run
+```
+make env-dev
+```
+to install all tool needed for training and corresponding development.
+Note: `make env-dev` automatically runs `make env` as part of the recipe.
+
 ## Package contents
-
-
 
 See below for an
 overview of the package contents:
@@ -40,15 +61,29 @@ overview of the package contents:
 │   ├── test_models // testing of trained models
 │   │   ├── __init__.py
 │   │   └── test_unet.py // example test suite for UNET
+|   ├── test_losses // basic sanity checks for various loss functions and metrics
+│   │   ├── __init__.py
+│   │   ├── test_losses.py
+│   │   ├── test_masked_losses.py
+|   |   └── test_multiclass_losses.py
 │   └── __init__.py
 ├── training // implementation of generic training routines
+│   ├── lightning_modules
+|   |   ├── __init__.py
+|   |   ├── base_lightning_module.py // main pytorch lightning module
+|   |   ├── binary_segmentation_module.py // main pytorch lightning module for binary segmentation, also supports multiple sigmoid predictions per pixel
+|   |   └── mutli_class_segmentation_module.py // main pytorch lightning module for multi class segmentation
 │   ├── __init__.py
 │   ├── fastai_training.py // fastai based template
+│   ├── hparam_opt.py // tools for hyperparameter optimisation using nevergrad
+│   ├── lightning_training.py // Minimal lightning training function
 │   ├── ignite_training.py // ignite based template
+│   ├── sklearn_training.py // scikit-learn based template
 │   └── pytorch_training.py // raw pytorch based template
 ├── utils // utilities
 │   ├── data // operations with data: custom loaders, wrappers, transformations
 │   │   ├── __init__.py
+|   |   ├── augmenter.py // interface class for albumentations image augmentations
 │   │   └── datasets.py // pytorch dataset wrappers
 │   ├── logging // custom logging routines
 │   │   ├── __init__.py
@@ -66,27 +101,11 @@ overview of the package contents:
 ├── dev.yml // development and training requirements
 ├── Dockerfile // Docker image specs
 ├── environment.yml // inference and test time dependencies
-├── hyperparameter.py // WIP 
 ├── Makefile // generic project tasks: cleaning, docs, building dependencies etc.
 ├── predict.py // example prediction CLI
 ├── README.md // this file
 └── train.py // example training CLI
 ```
-
-## Dependencies and environments
-
-Dependencies are aggregated via `environment.yml` and `dev.yml` which specify a list of
-`conda`-based project requirements. Run
-```
-make env
-```
-to only install dependencies needed for model testing and inference and run
-```
-make env-dev
-```
-to install all tool needed for training and corresponding development.
-Note: `make env-dev` automatically runs `make env` as part of the recipe.
-
 
 ## Docker
 
@@ -175,7 +194,26 @@ Everything can happen in the config, once the training routine is set up as desi
 
 ## Training
 
-Training is invoked by running `train.py` (or a similar script). The script needs to instantiate the training and validation dataset and run the specified training routine. A selection of training routines is already implemented and stored in the module `training`.
+Training is invoked by running `train.py` (or a similar script). The script needs to instantiate the training and validation dataset from the respective directories, e.g. `NpyDataset`s of `ndarray`s 
+```python
+train_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'train/x'),
+                                 os.path.join(global_config["DATA_DIR"], 'train/y'))
+
+test_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'test/x'),
+                                os.path.join(global_config["DATA_DIR"], 'test/y'))
+
+```
+
+Finally the specified training routine needs to be run, e.g. the standard `pytorch` training
+```python
+pytorch_training.train(train_data,
+                       test_data,
+                       pytorch_training.train_config,
+                       global_config)
+
+```
+
+A selection of training routines is already implemented and stored in the module `training`. The signature of the training routines can vary. Of course, these steps can also be executed in a Jupyter Notebook. 
 
 ## Models
 
@@ -228,17 +266,15 @@ you changed to logging directory settings. See the actual training routines for 
 
 ## Unit testing
 
-Unit tests are found under `tests` and are written in standard `unittest` format. However, then can conveniently be run
+Unit tests are found under `tests` and are written in standard `unittest` format. However, they can conveniently be run
 using `pytest` and the recipe
 ```
 make test
 ```
 in the Makefile. Model unit tests under `tests.test_models` need a specific model, hyperparameters and weight files.
 See an example unit testing suite for the U-Net under `tests.test_models.test_unet` with the corresponding config.
-Model unit tests contain training time testing (backprop steps etc.) as well as tests for existing weight files
+Model unit tests contain training time testing (backprop steps etc.) as well as tests for existing weight files % TRUE?
 in terms of consistency etc.
-
-## Build documentation
 
 ## Computer Vision
 One major application of this set of packages is Computer Vision. To this end we provide proven model architectures and integrate albumentations, an extensive library for image augmentation.
@@ -246,8 +282,3 @@ One major application of this set of packages is Computer Vision. To this end we
 In line with libraries such as opencv, skimage and albumentations we assume the images to be in channels-last ordering. Further we assume specific datatypes for different stages of the data processing pipeline.
 The images can be stored on the hard drive in various formats and we support methods to load the data.
 For pre-processing by the CPU we assume the images to be ndarrays with channels-last ordering. The dataloader should see to convert the images to torch.tensors with channels-first ordering once the images are send to the GPU.
-
-## Getting started
-### Installation
-### Start training
-### Make predictions
