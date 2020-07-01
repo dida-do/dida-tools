@@ -293,10 +293,10 @@ using `pytest` and the recipe
 ```
 make test
 ```
-in the Makefile. Model unit tests under `tests.test_models` need a specific model, hyperparameters and weight files.
-See an example unit testing suite for the U-Net under `tests.test_models.test_unet` with the corresponding config.
-Model unit tests contain training time testing (backprop steps etc.) as well as tests for existing weight files % TRUE?
-in terms of consistency etc.
+in the Makefile. Model unit tests under `tests.test_models` need a specific model and hyperparameters. The tests can be run on a given weight files or on a newly initialized model. See an example unit testing suite for the U-Net under `tests.test_models.test_unet` with the corresponding config.
+Model unit tests contain training time testing (backprop steps etc.) as well as tests for predictions.
+
+`tests.test_losses` implements basic sanity checks for loss functions and metrics. The functions are tested on randomly generated data and the tests cover the extreme cases (perfect match, complete mismatch) and the correct order (e.g. perfect match < half match < complete mismatch).
 
 ## Computer Vision
 One major application of this set of packages is Computer Vision. To this end we provide proven model architectures and integrate albumentations, an extensive library for image augmentation.
