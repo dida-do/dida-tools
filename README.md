@@ -273,7 +273,18 @@ you changed to logging directory settings. See the actual training routines for 
 
 ## Datasets
 
+In `utils.data.datasets` there are several implementations of dataloaders. The dataloaders hold the data directories and return image-label-pairs when `__getitem__` is called, i.e. the data is loaded from disk and augmented, if augmentations are required.
+The plain-vanilla dataloader is `NpyDataset`, which assumes that all data points are stored in individual files. The data is loaded and converted to `ndarray`s. The files should be of one of the following formats
 
+1. npy
+1. pt / pth
+1. csv
+1. xls / xlsx / xlsm / xlsb / odf
+1. hdf / h5 / hdf5 / he5
+1. json
+1. html
+
+`utils.data.augmenter` implements an interface to apply image augmentations from `albumentations` seemlessly.
 
 ## Unit testing
 
