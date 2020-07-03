@@ -41,6 +41,8 @@ conda activate dl-repo
 
 ## Package contents
 
+The package contains several modules and sub-directories. **config** contains files with the major configurations. **layers** contains layer definitions for neural networks. So far, a variaty of convolutional layers is implemented. The layers can be used e.g. in **models**, where an implementation of e.g. U-Net can be found. **training** provides several training routines for a selection of frameworks, such as `fastai`, `ignite` or `lightning`. Additionally, tools for hyperparameter optimization are found here. **utils** collects various utilities, such as tools for conversions, logging, dataloaders and losses. Under **tests** unit tests are implemented. 
+
 ## Docker
 
 A Docker image is provided by `Dockerfile`.
