@@ -16,17 +16,13 @@ If you use a very specific implementation of a layer/model/loss, you are invited
 easily modified - not a hard implementation of some specific pattern.**
 
 
-## Installation
+## Installation, dependencies and environments
 
 The installation of the package is very straight-forward. It simply needs to be cloned to a desired location with
 ```
 git clone https://gitlab.com/didado/dida-tools.git
 ```
-Subsequently, the environment needs to be set up.
-
-## Dependencies and environments
-
-Dependencies are aggregated via `environment.yml` and `dev.yml` which specify a list of
+Subsequently, the environment needs to be set up. Dependencies are aggregated via `environment.yml` and `dev.yml` which specify a list of
 `conda`-based project requirements. Run
 ```
 make env
@@ -44,73 +40,6 @@ conda activate dl-repo
 ```
 
 ## Package contents
-
-See below for an
-overview of the package contents:
-
-
-```C
-.
-├── config // generic project settings
-│   ├── __init__.py
-│   ├── config.py // gobal project config file
-│   ├── device.py // device settings: cpu/cuda
-├── docs // documentation files
-├── layers // layer implementations
-│   ├── __init__.py
-│   └── conv.py // convolutional layers
-├── models // model implementations
-│   ├── __init__.py
-│   └── unet.py // UNET
-├── tests // unit tests
-│   ├── test_models // testing of trained models
-│   │   ├── __init__.py
-│   │   └── test_unet.py // example test suite for UNET
-|   ├── test_losses // basic sanity checks for various loss functions and metrics
-│   │   ├── __init__.py
-│   │   ├── test_losses.py
-│   │   ├── test_masked_losses.py
-|   |   └── test_multiclass_losses.py
-│   └── __init__.py
-├── training // implementation of generic training routines
-│   ├── lightning_modules
-|   |   ├── __init__.py
-|   |   ├── base_lightning_module.py // main pytorch lightning module
-|   |   ├── binary_segmentation_module.py // main pytorch lightning module for binary segmentation, also supports multiple sigmoid predictions per pixel
-|   |   └── mutli_class_segmentation_module.py // main pytorch lightning module for multi class segmentation
-│   ├── __init__.py
-│   ├── fastai_training.py // fastai based template
-│   ├── hparam_opt.py // tools for hyperparameter optimisation using nevergrad
-│   ├── lightning_training.py // Minimal lightning training function
-│   ├── ignite_training.py // ignite based template
-│   ├── sklearn_training.py // scikit-learn based template
-│   └── pytorch_training.py // raw pytorch based template
-├── utils // utilities
-│   ├── data // operations with data: custom loaders, wrappers, transformations
-│   │   ├── __init__.py
-|   |   ├── augmenter.py // interface class for albumentations image augmentations
-│   │   └── datasets.py // pytorch dataset wrappers
-│   ├── logging // custom logging routines
-│   │   ├── __init__.py
-│   │   └── csv.py // csv experiment tracker
-│   ├── notify // training notification pipelines
-│   │   ├── __init__.py
-│   │   └── smtp.py // automated gmail notification via SMTP
-│   ├── __init__.py
-│   ├── loss.py // loss implementations
-│   ├── name.py // file naming utilities
-│   ├── path.py // path manipulation utilities
-│   └── torchutils.py // generic pytorch tasks: forward passes, backward passes etc.
-├── .gitignore
-├── .pylintrc // linter settings
-├── dev.yml // development and training requirements
-├── Dockerfile // Docker image specs
-├── environment.yml // inference and test time dependencies
-├── Makefile // generic project tasks: cleaning, docs, building dependencies etc.
-├── predict.py // example prediction CLI
-├── README.md // this file
-└── train.py // example training CLI
-```
 
 ## Docker
 
@@ -191,8 +120,8 @@ train_config = {
 }
 ```
 
-Note that the config contains objects such as functions and classes which corresponding keyword arguments 
-(for example `OPTIMIZER` and the corresponding `OPTIMIZER_CONFIG` with for example the learning rate).
+Note that the config contains objects such as functions and classes with corresponding keyword arguments 
+(for example `OPTIMIZER` and the corresponding `OPTIMIZER_CONFIG` with the learning rate).
 The reason for this seemingly verbose architecture is that training routines can be fully captured and shared.
 Additionally, they can easily be logged and no code refactoring is required to exchange hyperparameters.
 Everything can happen in the config, once the training routine is set up as desired.
