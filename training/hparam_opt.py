@@ -21,7 +21,7 @@ def update_config(config, **kwargs):
         else:
             for config_key, config_value in config.items():
                 if isinstance(config_value, dict):
-                    if key in config:
+                    if key in config_value:
                         config[config_key][key] = value
                         key_used = True
             
