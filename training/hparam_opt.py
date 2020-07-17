@@ -39,7 +39,7 @@ class TrainingContainer:
     :param test_dataset: Test dataset for non pytorch_lightning models
     :param global_config: Global training config
     :param backend: Which backend to use
-    :param mode: Whether to mnimise of maximise the target metric"""
+    :param mode: Whether to minimise of maximise the target metric"""
     
     
     base_config: dict
