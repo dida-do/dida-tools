@@ -69,7 +69,7 @@ class Log():
         return """This Log module is a wrapper of mlflow.
 The Hyperparameters are values that differentiate the runs from each other and do not change during a run.
 Like the batch size.
-Metrics are values that change due the run. Like the loss value.
+Metrics are values that change during the run. Like the loss value.
 
 There are versions of log_param() and log_metric() that log multiple values in a dictionary at once.
 They are called log_params() and log_metrics() (s appended).
@@ -84,4 +84,3 @@ The runs will be saved in a directory called mlruns which will be created in the
 start the training run.
 
 For more information check out the mlflow documentation."""
-    

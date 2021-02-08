@@ -21,7 +21,7 @@ def update_config(config, **kwargs):
         else:
             for config_key, config_value in config.items():
                 if isinstance(config_value, dict):
-                    if key in config:
+                    if key in config_value:
                         config[config_key][key] = value
                         key_used = True
             
@@ -39,7 +39,7 @@ class TrainingContainer:
     :param test_dataset: Test dataset for non pytorch_lightning models
     :param global_config: Global training config
     :param backend: Which backend to use
-    :param mode: Whether to mnimise of maximise the target metric"""
+    :param mode: Whether to minimise of maximise the target metric"""
     
     
     base_config: dict
