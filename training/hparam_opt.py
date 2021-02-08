@@ -49,7 +49,7 @@ class TrainingContainer:
     backend: str="fastai"
     mode: str="max"
         
-    def __post__init__(self):
+    def __post_init__(self):
         if self.global_config is None:
             self.global_config = global_config
             
@@ -59,7 +59,7 @@ class TrainingContainer:
             self.coef = 1
         
     def __call__(self, **kwargs):
-        temp_config = update_config(self.config, **kwargs)
+        temp_config = update_config(self.base_config, **kwargs)
         
         if self.backend == "fastai":
             _, log_content, _ = fastai_train(self.train_dataset, self.test_dataset, temp_config, self.global_config)
