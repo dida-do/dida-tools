@@ -1,4 +1,4 @@
-# dida Tools
+# dida tools
 
 This package is intended as a collection of fully compatible and flexible
 patterns for machine learning projects. Rather than giving a detailed implementation
