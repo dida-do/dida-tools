@@ -1,81 +1,28 @@
-# Dida Deep Learning Tools
+# dida tools
 
 This package is intended as a collection of fully compatible and flexible
-patterns for deep learning projects. Rather than giving a detailed implementation
+patterns for machine learning projects. Rather than giving a detailed implementation
 for every possible task 
 ("Why don't you have a *channel shuffle group transpose convolution layer*
 for my Wasserstein DCGAN"), we rather aim to provide templates and best practices for
 intuitive architectures. 
 
 Additionally, typical requirements such as Tensorboard logging, simple and extensible
-training schemes, experiment tracking and model testing are covered.
+training schemes, experiment tracking, hyperparameter optimization and model testing are covered.
 
 If you use a very specific implementation of a layer/model/loss, you are invited to add your implementation here.
  
 **All components of the package are to be understood as a template which is designed to be
 easily modified - not a hard implementation of some specific pattern.**
 
-## Package contents
 
+## Installation, dependencies and environments
 
-
-See below for an
-overview of the package contents:
-
-
-```C
-.
-├── config // generic project settings
-│   ├── __init__.py
-│   ├── config.py // gobal project config file
-│   ├── device.py // device settings: cpu/cuda
-├── docs // documentation files
-├── layers // layer implementations
-│   ├── __init__.py
-│   └── conv.py // convolutional layers
-├── models // model implementations
-│   ├── __init__.py
-│   └── unet.py // UNET
-├── tests // unit tests
-│   ├── test_models // testing of trained models
-│   │   ├── __init__.py
-│   │   └── test_unet.py // example test suite for UNET
-│   └── __init__.py
-├── training // implementation of generic training routines
-│   ├── __init__.py
-│   ├── fastai_training.py // fastai based template
-│   ├── ignite_training.py // ignite based template
-│   └── pytorch_training.py // raw pytorch based template
-├── utils // utilities
-│   ├── data // operations with data: custom loaders, wrappers, transformations
-│   │   ├── __init__.py
-│   │   └── datasets.py // pytorch dataset wrappers
-│   ├── logging // custom logging routines
-│   │   ├── __init__.py
-│   │   └── csv.py // csv experiment tracker
-│   ├── notify // training notification pipelines
-│   │   ├── __init__.py
-│   │   └── smtp.py // automated gmail notification via SMTP
-│   ├── __init__.py
-│   ├── loss.py // loss implementations
-│   ├── name.py // file naming utilities
-│   ├── path.py // path manipulation utilities
-│   └── torchutils.py // generic pytorch tasks: forward passes, backward passes etc.
-├── .gitignore
-├── .pylintrc // linter settings
-├── dev.yml // development and training requirements
-├── Dockerfile // Docker image specs
-├── environment.yml // inference and test time dependencies
-├── hyperparameter.py // WIP 
-├── Makefile // generic project tasks: cleaning, docs, building dependencies etc.
-├── predict.py // example prediction CLI
-├── README.md // this file
-└── train.py // example training CLI
+The installation of the package is very straight-forward. It simply needs to be cloned to a desired location with
 ```
-
-## Dependencies and environments
-
-Dependencies are aggregated via `environment.yml` and `dev.yml` which specify a list of
+git clone https://gitlab.com/didado/dida-tools.git
+```
+Subsequently, the environment needs to be set up. Dependencies are aggregated via `environment.yml` and `dev.yml` which specify a list of
 `conda`-based project requirements. Run
 ```
 make env
@@ -87,6 +34,14 @@ make env-dev
 to install all tool needed for training and corresponding development.
 Note: `make env-dev` automatically runs `make env` as part of the recipe.
 
+Once the build was successful, the environment can be activate by running
+```
+conda activate dl-repo
+```
+
+## Package contents
+
+The package contains several modules and sub-directories. **config** contains files with the major configurations. **layers** contains layer definitions for neural networks. So far, a variaty of convolutional layers is implemented. The layers can be used e.g. in **models**, where an implementation of e.g. U-Net can be found. **training** provides several training routines for a selection of frameworks, such as `fastai`, `ignite` or `lightning`. Additionally, tools for hyperparameter optimization are found here. **utils** collects various utilities, such as tools for conversions, logging, dataloaders and losses. Under **tests** unit tests are implemented. 
 
 ## Docker
 
@@ -167,19 +122,43 @@ train_config = {
 }
 ```
 
-Note that the config contains objects such as functions and classes which corresponding keyword arguments 
-(for example `OPTIMIZER` and the corresponding `OPTIMIZER_CONFIG` with for example the learning rate).
+Note that the config contains objects such as functions and classes with corresponding keyword arguments 
+(for example `OPTIMIZER` and the corresponding `OPTIMIZER_CONFIG` with the learning rate).
 The reason for this seemingly verbose architecture is that training routines can be fully captured and shared.
 Additionally, they can easily be logged and no code refactoring is required to exchange hyperparameters.
 Everything can happen in the config, once the training routine is set up as desired.
 
 ## Training
 
+Training is invoked by running `train.py` (or a similar script). The script needs to instantiate the training and validation dataset from the respective directories, e.g. `NpyDataset`s of `ndarray`s 
+```python
+from config.config import global_config
+from training import pytorch_training
+
+train_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'train/x'),
+                                 os.path.join(global_config["DATA_DIR"], 'train/y'))
+
+test_data = datasets.NpyDataset(os.path.join(global_config["DATA_DIR"], 'test/x'),
+                                os.path.join(global_config["DATA_DIR"], 'test/y'))
+
+```
+
+Finally the specified training routine needs to be run, e.g. the standard `pytorch` training
+```python
+pytorch_training.train(train_data,
+                       test_data,
+                       pytorch_training.train_config,
+                       global_config)
+
+```
+
+A selection of training routines is already implemented and stored in the module `training`. The signature of the training routines can vary. Of course, these steps can also be executed in a Jupyter Notebook.
 
 ## Models
 
-Model implementation can be found in the `models` submodule. For now,
-only an exemplary recursive U-Net implementation is available. Feel free to add your model!
+Model implementations can be found in the `models` submodule. For now, an exemplary recursive U-Net implementation and binary classification models from `torchvision` are available. Feel free to add your own!
+
+Additionally, `scikit-learn` provides a large number of algorithms.
 
 ## Experiment tracking
 
@@ -225,19 +204,30 @@ you changed to logging directory settings. See the actual training routines for 
 
 ## Datasets
 
+In `utils.data.datasets` there are several implementations of dataloaders. The dataloaders hold the data directories and return image-label-pairs when `__getitem__` is called, i.e. the data is loaded from disk and augmented, if augmentations are required.
+The plain-vanilla dataloader is `NpyDataset`, which assumes that all data points are stored in individual files. The data is loaded and converted to `ndarray`s. The files should be of one of the following formats
+
+1. npy
+1. pt / pth
+1. csv
+1. xls / xlsx / xlsm / xlsb / odf
+1. hdf / h5 / hdf5 / he5
+1. json
+1. html
+
+`utils.data.augmenter` implements an interface to apply image augmentations from `albumentations` seemlessly.
+
 ## Unit testing
 
-Unit tests are found under `tests` and are written in standard `unittest` format. However, then can conveniently be run
+Unit tests are found under `tests` and are written in standard `unittest` format. However, they can conveniently be run
 using `pytest` and the recipe
 ```
 make test
 ```
-in the Makefile. Model unit tests under `tests.test_models` need a specific model, hyperparameters and weight files.
-See an example unit testing suite for the U-Net under `tests.test_models.test_unet` with the corresponding config.
-Model unit tests contain training time testing (backprop steps etc.) as well as tests for existing weight files
-in terms of consistency etc.
+in the Makefile. Model unit tests under `tests.test_models` need a specific model and hyperparameters. The tests can be run on a given weight files or on a newly initialized model. See an example unit testing suite for the U-Net under `tests.test_models.test_unet` with the corresponding config.
+Model unit tests contain training time testing (backprop steps etc.) as well as tests for predictions.
 
-## Build documentation
+`tests.test_losses` implements basic sanity checks for loss functions and metrics. The functions are tested on randomly generated data and the tests cover the extreme cases (perfect match, complete mismatch) and the correct order (e.g. perfect match < half match < complete mismatch).
 
 ## Computer Vision
 One major application of this set of packages is Computer Vision. To this end we provide proven model architectures and integrate albumentations, an extensive library for image augmentation.
@@ -245,4 +235,3 @@ One major application of this set of packages is Computer Vision. To this end we
 In line with libraries such as opencv, skimage and albumentations we assume the images to be in channels-last ordering. Further we assume specific datatypes for different stages of the data processing pipeline.
 The images can be stored on the hard drive in various formats and we support methods to load the data.
 For pre-processing by the CPU we assume the images to be ndarrays with channels-last ordering. The dataloader should see to convert the images to torch.tensors with channels-first ordering once the images are send to the GPU.
-
