@@ -4,7 +4,7 @@ This package is intended as a collection of fully compatible and flexible
 patterns for machine learning projects. Rather than giving a detailed implementation
 for every possible task 
 ("Why don't you have a *channel shuffle group transpose convolution layer*
-for my Wasserstein DCGAN"), we rather aim to provide templates and best practices for
+for my Wasserstein DCGAN"), we aim to provide templates and best practices for
 intuitive architectures. 
 
 Additionally, typical requirements such as Tensorboard logging, simple and extensible
