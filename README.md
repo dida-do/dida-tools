@@ -4,7 +4,7 @@ This package is intended as a collection of fully compatible and flexible
 patterns for machine learning projects. Rather than giving a detailed implementation
 for every possible task 
 ("Why don't you have a *channel shuffle group transpose convolution layer*
-for my Wasserstein DCGAN"), we rather aim to provide templates and best practices for
+for my Wasserstein DCGAN"), we aim to provide templates and best practices for
 intuitive architectures. 
 
 Additionally, typical requirements such as Tensorboard logging, simple and extensible
@@ -235,3 +235,6 @@ One major application of this set of packages is Computer Vision. To this end we
 In line with libraries such as opencv, skimage and albumentations we assume the images to be in channels-last ordering. Further we assume specific datatypes for different stages of the data processing pipeline.
 The images can be stored on the hard drive in various formats and we support methods to load the data.
 For pre-processing by the CPU we assume the images to be ndarrays with channels-last ordering. The dataloader should see to convert the images to torch.tensors with channels-first ordering once the images are send to the GPU.
+
+## License
+dida tools operates under the Apache License, version 2.0, as found in the LICENSE file. 
